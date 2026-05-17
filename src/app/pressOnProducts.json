@@ -1,0 +1,170 @@
+[
+  {
+    "title": "Puppy Love",
+    "handle": "puppy-love",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/puppy-love",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/DFE73D2D-403D-4AEE-B5CF-BFD2C0452015.png?v=1736081672",
+    "localImagePath": "/shopify/press-ons/source/puppy-love.png",
+    "style": {
+      "baseColor": "#f7e0d5",
+      "accentColor": "#bd6b74",
+      "tipColor": "#fff8f2",
+      "finish": "hearts"
+    }
+  },
+  {
+    "title": "Blush Sparkle",
+    "handle": "blush-sparkle",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/blush-sparkle",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/8001B132-A8A0-4D4A-B140-0AD4990D237E.png?v=1736081547",
+    "localImagePath": "/shopify/press-ons/source/blush-sparkle.png",
+    "style": {
+      "baseColor": "#f6d6e0",
+      "accentColor": "#ee9eb8",
+      "tipColor": "#fff8fb",
+      "finish": "sparkle"
+    }
+  },
+  {
+    "title": "Crimson Charm",
+    "handle": "crimson-charm",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/crimson-charm",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/66B83B2A-B4EE-46EE-B752-7959B6C98502.png?v=1736081323",
+    "localImagePath": "/shopify/press-ons/source/crimson-charm.png",
+    "style": {
+      "baseColor": "#90253a",
+      "accentColor": "#cc6073",
+      "tipColor": "#f6d7dc",
+      "finish": "gloss"
+    }
+  },
+  {
+    "title": "Monochrome Muse",
+    "handle": "monochrome-muse",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/monochrome-muse",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/8A05188F-0996-466D-B0BE-721C567855A0.png?v=1736081115",
+    "localImagePath": "/shopify/press-ons/source/monochrome-muse.png",
+    "style": {
+      "baseColor": "#1e2226",
+      "accentColor": "#f2f0ed",
+      "tipColor": "#ffffff",
+      "finish": "monochrome"
+    }
+  },
+  {
+    "title": "Cosmic Glam",
+    "handle": "cosmic-glam",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/cosmic-glam",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/E8D3B4E0-E651-481D-BC13-0A2AF5015862.png?v=1736080984",
+    "localImagePath": "/shopify/press-ons/source/cosmic-glam.png",
+    "style": {
+      "baseColor": "#2d2c55",
+      "accentColor": "#b8a7ff",
+      "tipColor": "#f4efff",
+      "finish": "stars"
+    }
+  },
+  {
+    "title": "Golden Rose",
+    "handle": "golden-rose",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/golden-rose",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/FD1D5181-9152-4AB0-AE25-BF112A95C17B.png?v=1736080745",
+    "localImagePath": "/shopify/press-ons/source/golden-rose.png",
+    "style": {
+      "baseColor": "#e9c081",
+      "accentColor": "#a75f50",
+      "tipColor": "#fff3dd",
+      "finish": "rose"
+    }
+  },
+  {
+    "title": "Elegant Bloom",
+    "handle": "elegant-bloom",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/elegant-bloom",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/B08DAFBE-1B86-4C1C-9C3C-CBCB259FF16E.png?v=1736080557",
+    "localImagePath": "/shopify/press-ons/source/elegant-bloom.png",
+    "style": {
+      "baseColor": "#f0dfd2",
+      "accentColor": "#d68c99",
+      "tipColor": "#fffaf5",
+      "finish": "floral"
+    }
+  },
+  {
+    "title": "Midnight Chic",
+    "handle": "midnight-chic",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/midnight-chic",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/25B1E36B-B377-424A-88AC-849FE04A63B1.png?v=1736080414",
+    "localImagePath": "/shopify/press-ons/source/midnight-chic.png",
+    "style": {
+      "baseColor": "#111821",
+      "accentColor": "#596b7e",
+      "tipColor": "#dfe5ec",
+      "finish": "gloss"
+    }
+  },
+  {
+    "title": "Playful Charms",
+    "handle": "playful-charms",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/playful-charms",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/C7AF0D25-7EC0-4F4F-903F-E7A387FA1C7A.png?v=1736080269",
+    "localImagePath": "/shopify/press-ons/source/playful-charms.png",
+    "style": {
+      "baseColor": "#f3d4a8",
+      "accentColor": "#74a58a",
+      "tipColor": "#fff6de",
+      "finish": "charms"
+    }
+  },
+  {
+    "title": "Chrome Starburst",
+    "handle": "chrome-starburst",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/chrome-starburst",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/34D0CEEE-EE60-48D5-9F01-17F72777849C.png?v=1736080112",
+    "localImagePath": "/shopify/press-ons/source/chrome-starburst.png",
+    "style": {
+      "baseColor": "#d6dce1",
+      "accentColor": "#8e9aa6",
+      "tipColor": "#ffffff",
+      "finish": "chrome"
+    }
+  },
+  {
+    "title": "Floral Bliss",
+    "handle": "floral-bliss",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/floral-bliss",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/36824D55-7381-4A38-BFD0-FFAEFD7F625B.png?v=1736012592",
+    "localImagePath": "/shopify/press-ons/source/floral-bliss.png",
+    "style": {
+      "baseColor": "#f7e7ef",
+      "accentColor": "#da7599",
+      "tipColor": "#fffafc",
+      "finish": "floral"
+    }
+  },
+  {
+    "title": "Golden glow",
+    "handle": "golden-glow",
+    "price": "€10.00",
+    "productUrl": "https://alwayslikedesign.com/products/golden-glow",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0840/7187/4895/files/3B1545D8-8D5B-43B5-832D-09978F5976E7.png?v=1736079795",
+    "localImagePath": "/shopify/press-ons/source/golden-glow.png",
+    "style": {
+      "baseColor": "#e3b85b",
+      "accentColor": "#f6d47e",
+      "tipColor": "#fff4d3",
+      "finish": "chrome"
+    }
+  }
+]
