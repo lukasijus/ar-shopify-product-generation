@@ -47,8 +47,15 @@ http://127.0.0.1:5173/
 ```
 
 Click **Extract nails**, upload a PNG/JPEG/WebP package image, draw one box for
-each nail, and save the ROI JSON. Put that JSON somewhere under
-`private/extraction-work/<product>/rois.json`, then run:
+each nail, then click **Extract assets**. The local dev server writes:
+
+```text
+private/extraction-work/<product>/rois.json
+private/extraction-work/<product>/proposal.json
+public/nail-assets/<product>/
+```
+
+The page also shows the terminal commands as a manual fallback:
 
 ```bash
 npm run nails:extract-roi -- --roi private/extraction-work/example_1/rois.json --source-image public/extract-press-on-nails/example_1/IMG_1943.HEIC

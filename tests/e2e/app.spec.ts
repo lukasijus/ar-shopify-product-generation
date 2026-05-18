@@ -113,6 +113,50 @@ test("uploads a package image in the nail ROI annotator", async ({
   await expect(page.getByLabel("ROI JSON")).toContainText(
     '"sourceImage": "blush-sparkle.png"',
   );
+
+  for (const finger of ["thumb", "index", "middle", "ring", "pinky"]) {
+    await page.getByRole("combobox", { name: "Finger" }).click();
+    await page.getByRole("option", { name: finger }).click();
+    const stage = page.getByTestId("annotator-stage");
+    await stage.dispatchEvent("mousedown", {
+      bubbles: true,
+      clientX: 120,
+      clientY: 160,
+    });
+    await stage.dispatchEvent("mousemove", {
+      bubbles: true,
+      clientX: 220,
+      clientY: 320,
+    });
+    await stage.dispatchEvent("mouseup", {
+      bubbles: true,
+      clientX: 220,
+      clientY: 320,
+    });
+  }
+
+  await page.route("/api/nails/extract-roi", async (route) => {
+    const payload = route.request().postDataJSON() as {
+      productHandle: string;
+      uploadedSource?: { name: string };
+    };
+    expect(payload.productHandle).toBe("upload-demo");
+    expect(payload.uploadedSource?.name).toBe("blush-sparkle.png");
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        roiPath: "private/extraction-work/upload-demo/rois.json",
+        proposalPath: "private/extraction-work/upload-demo/proposal.json",
+        assetDir: "public/nail-assets/upload-demo",
+      }),
+    });
+  });
+
+  await page.getByRole("button", { name: "Extract assets" }).click();
+  await expect(
+    page.getByText("Nail assets extracted and approved."),
+  ).toBeVisible();
+  await expect(page.getByText("public/nail-assets/upload-demo")).toBeVisible();
   await expect(page.getByLabel("Next terminal commands")).toContainText(
     "private/extraction-work/upload-demo/rois.json",
   );

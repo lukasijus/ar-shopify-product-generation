@@ -65,6 +65,13 @@ type SavePickerWindow = Window & {
   }) => Promise<JsonFileHandle>;
 };
 
+type ExtractionResult = {
+  roiPath: string;
+  proposalPath: string;
+  assetDir: string;
+  output?: string;
+};
+
 const fingers: FingerName[] = ["thumb", "index", "middle", "ring", "pinky"];
 
 const annotatorTheme = createTheme({
@@ -126,6 +133,17 @@ const toLocalPublicPath = (source: string): string => {
   return source;
 };
 
+const readFileBase64 = async (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result);
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 function NailAnnotatorMode() {
   const params = useMemo(() => getParams(), []);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -137,12 +155,16 @@ function NailAnnotatorMode() {
   const [sourceImageName, setSourceImageName] = useState(
     params.sourceImage || "Upload a package image",
   );
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [sourceKind, setSourceKind] = useState<"url" | "upload">(
     params.sourceImage ? "url" : "upload",
   );
   const [selectedFinger, setSelectedFinger] = useState<FingerName>("thumb");
   const [boxes, setBoxes] = useState<RoiBox[]>([]);
   const [drag, setDrag] = useState<DragState | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionResult, setExtractionResult] =
+    useState<ExtractionResult | null>(null);
   const [message, setMessage] = useState(
     "Upload a package image, draw one rectangle around each nail, then save the ROI JSON.",
   );
@@ -209,10 +231,12 @@ function NailAnnotatorMode() {
     uploadedUrlRef.current = url;
     setSourceImage(url);
     setSourceImageName(file.name);
+    setSourceFile(file);
     setSourceKind("upload");
     setImageSize({ width: 0, height: 0 });
     setBoxes([]);
     setDrag(null);
+    setExtractionResult(null);
     dragRef.current = null;
     setMessage("Package image loaded. Draw the thumb ROI first.");
   };
@@ -256,6 +280,65 @@ function NailAnnotatorMode() {
   const copyNextCommands = async (): Promise<void> => {
     await navigator.clipboard.writeText(nextCommands);
     setMessage("Next terminal commands copied to clipboard.");
+  };
+
+  const runExtraction = async (): Promise<void> => {
+    if (!complete) {
+      setMessage("Draw all five ROIs before extracting nail assets.");
+      return;
+    }
+
+    if (sourceKind === "upload" && !sourceFile) {
+      setMessage("Upload the original package image before extracting.");
+      return;
+    }
+
+    setExtracting(true);
+    setExtractionResult(null);
+    setMessage("Extracting and approving nail assets locally.");
+
+    try {
+      const uploadedSource =
+        sourceKind === "upload" && sourceFile
+          ? {
+              name: sourceFile.name,
+              dataBase64: await readFileBase64(sourceFile),
+            }
+          : undefined;
+
+      const response = await fetch("/api/nails/extract-roi", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productHandle: params.productHandle,
+          roiDocument,
+          sourceImagePath: sourceKind === "url" ? sourceImagePath : undefined,
+          uploadedSource,
+        }),
+      });
+      const result = (await response.json()) as
+        | ExtractionResult
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in result && result.error
+            ? result.error
+            : "Local extraction failed.",
+        );
+      }
+
+      setExtractionResult(result as ExtractionResult);
+      setMessage("Nail assets extracted and approved.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Local extraction failed.",
+      );
+    } finally {
+      setExtracting(false);
+    }
   };
 
   const downloadJson = (): void => {
@@ -601,19 +684,26 @@ function NailAnnotatorMode() {
                 <Typography variant="h6">Next step</Typography>
               </Stack>
               <Typography color="text.secondary" variant="body2">
-                Save the ROI JSON as <code>{roiSavePath}</code>, then run these
-                commands from the project root.
+                Run the local extractor from this page. It saves the ROI JSON,
+                extracts the five nail clips, and approves them into public
+                assets.
               </Typography>
-              {sourceKind === "upload" ? (
-                <Alert severity="warning">
-                  Replace <code>{sourceImagePath}</code> with the original file
-                  path, for example{" "}
-                  <code>
-                    public/extract-press-on-nails/example_1/IMG_1943.HEIC
-                  </code>
-                  .
+              <Button
+                disabled={!complete || extracting}
+                startIcon={<TerminalIcon />}
+                variant="contained"
+                onClick={runExtraction}
+              >
+                {extracting ? "Extracting..." : "Extract assets"}
+              </Button>
+              {extractionResult ? (
+                <Alert severity="success">
+                  Wrote assets to <code>{extractionResult.assetDir}</code>.
                 </Alert>
               ) : null}
+              <Typography color="text.secondary" variant="body2">
+                Manual fallback:
+              </Typography>
               <TextField
                 multiline
                 fullWidth
