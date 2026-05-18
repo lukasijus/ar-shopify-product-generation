@@ -7,6 +7,7 @@ export type HandFixture = {
   label: string;
   imagePath: string;
   targetImagePath?: string;
+  targetKind?: "reference" | "imagegen";
   expectedDifficulty: FixtureDifficulty;
   visibleNails: boolean;
   expectedVisibleFingers: FingerName[];
@@ -193,6 +194,8 @@ export const handFixtures = [
     id: "v2-all-five-visible",
     label: "V2 all five visible",
     imagePath: "/test-fixtures/hands/generated-v2/all-five-visible.png",
+    targetImagePath: "/test-fixtures/hands/targets-v2/all-five-visible.png",
+    targetKind: "imagegen",
     expectedDifficulty: "baseline",
     visibleNails: true,
     expectedVisibleFingers: allFingers,
@@ -202,6 +205,8 @@ export const handFixtures = [
     id: "v2-peace-index-middle",
     label: "V2 peace sign",
     imagePath: "/test-fixtures/hands/generated-v2/peace-index-middle.png",
+    targetImagePath: "/test-fixtures/hands/targets-v2/peace-index-middle.png",
+    targetKind: "imagegen",
     expectedDifficulty: "moderate",
     visibleNails: true,
     expectedVisibleFingers: ["index", "middle"],
@@ -211,6 +216,8 @@ export const handFixtures = [
     id: "v2-thumb-only-visible",
     label: "V2 thumb only",
     imagePath: "/test-fixtures/hands/generated-v2/thumb-only-visible.png",
+    targetImagePath: "/test-fixtures/hands/targets-v2/thumb-only-visible.png",
+    targetKind: "imagegen",
     expectedDifficulty: "hard",
     visibleNails: true,
     expectedVisibleFingers: ["thumb"],

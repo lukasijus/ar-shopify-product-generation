@@ -28,6 +28,7 @@ import {
 } from "./ar/handTracker";
 import { computeNailOverlays, type Landmark } from "./ar/nailGeometry";
 import { summarizeOverlayBounds } from "./ar/overlayBounds";
+import { compareFixtureRender } from "./ar/targetComparison";
 import {
   findFixtureById,
   handFixtures,
@@ -101,6 +102,7 @@ const getFixtureStatusLabel = (status: FixtureStatus): string => {
 
 function FixtureMode() {
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const targetImageRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const trackerRef = useRef<HandImageTracker | null>(null);
 
@@ -181,8 +183,15 @@ function FixtureMode() {
         const renderedFingers = overlays
           .map((overlay) => overlay.finger)
           .join(", ");
+        const comparison = targetImageRef.current
+          ? compareFixtureRender(image, canvas, targetImageRef.current)
+          : null;
+        const comparisonText =
+          comparison?.compared && fixture.targetKind === "imagegen"
+            ? ` Target diff: ${comparison.averageDifference.toFixed(1)} avg, ${(comparison.changedPixelRatio * 100).toFixed(1)}% changed.`
+            : "";
         setMessage(
-          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}.`,
+          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}.${comparisonText}`,
         );
       } else {
         setMessage(
@@ -398,9 +407,11 @@ function FixtureMode() {
                   Target reference
                 </Typography>
                 <img
+                  ref={targetImageRef}
                   alt={`${fixture.label} press-on target`}
                   className="fixture-target-image"
                   src={fixture.targetImagePath}
+                  onLoad={renderFixture}
                 />
               </Box>
             ) : fixture.expectedVisibleFingers.length > 0 ? (

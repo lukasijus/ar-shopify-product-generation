@@ -3,10 +3,14 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 test("loads the nail try-on prototype on desktop", async ({ page }) => {
-  const assetRequests: string[] = [];
+  const pngAssetRequests = new Set<string>();
   page.on("request", (request) => {
-    if (request.url().includes("/nail-assets/blush-sparkle-polished/")) {
-      assetRequests.push(request.url());
+    const url = request.url();
+    if (
+      url.includes("/nail-assets/blush-sparkle-polished/") &&
+      url.endsWith(".png")
+    ) {
+      pngAssetRequests.add(url);
     }
   });
 
@@ -26,7 +30,7 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
   expect(canvasBox?.width).toBeGreaterThan(300);
   expect(canvasBox?.height).toBeGreaterThan(300);
   await expect
-    .poll(() => assetRequests.length, {
+    .poll(() => pngAssetRequests.size, {
       message: "loads extracted Blush Sparkle nail assets",
     })
     .toBe(5);

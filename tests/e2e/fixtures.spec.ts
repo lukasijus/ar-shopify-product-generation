@@ -101,7 +101,14 @@ test("checks generated v2 fixture expected finger panels", async ({
     ).toBeVisible();
     await expect(page.getByAltText(`${fixture.label} bare hand`)).toBeVisible();
 
-    await expect(page.getByText("Expected result")).toBeVisible();
+    if (fixture.targetImagePath) {
+      await expect(page.getByText("Target reference")).toBeVisible();
+      await expect(
+        page.getByAltText(`${fixture.label} press-on target`),
+      ).toBeVisible();
+    } else {
+      await expect(page.getByText("Expected result")).toBeVisible();
+    }
     await expect(page.getByTestId("fixture-status-message")).toContainText(
       /Rendered|MediaPipe did not detect|failed|No visible nail beds/,
       { timeout: 60_000 },

@@ -1,6 +1,6 @@
 import type { NailOverlay } from "./nailGeometry";
 import type { NailProductStyle } from "../app/pressOnProducts";
-import type { NailAssetSet } from "./nailAssets";
+import type { NailAsset, NailAssetSet } from "./nailAssets";
 
 type Point = {
   x: number;
@@ -167,26 +167,34 @@ const getOverlayStyle = (
 const drawNailAsset = (
   context: CanvasRenderingContext2D,
   overlay: NailOverlay,
-  asset: HTMLImageElement,
+  asset: NailAsset,
 ): void => {
+  const image = asset.image;
+  const tipX = asset.tipAnchor[0] * image.naturalWidth;
+  const tipY = asset.tipAnchor[1] * image.naturalHeight;
+  const cuticleX = asset.cuticleAnchor[0] * image.naturalWidth;
+  const cuticleY = asset.cuticleAnchor[1] * image.naturalHeight;
+  const anchorLength = Math.max(
+    Math.hypot(tipX - cuticleX, tipY - cuticleY),
+    1,
+  );
   const targetHeight = overlay.height * 1.16;
-  const imageRatio =
-    asset.naturalWidth > 0 && asset.naturalHeight > 0
-      ? asset.naturalWidth / asset.naturalHeight
-      : overlay.width / overlay.height;
-  const targetWidth = Math.max(overlay.width * 0.82, targetHeight * imageRatio);
+  const scale = targetHeight / anchorLength;
+  const anchorMidX = (tipX + cuticleX) / 2;
+  const anchorMidY = (tipY + cuticleY) / 2;
 
   context.shadowColor = "rgba(15, 38, 48, 0.22)";
   context.shadowBlur = 8;
   context.shadowOffsetY = 2;
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
+  context.rotate(asset.rotationRadians);
   context.drawImage(
-    asset,
-    -targetWidth / 2,
-    -targetHeight / 2,
-    targetWidth,
-    targetHeight,
+    image,
+    -anchorMidX * scale,
+    -anchorMidY * scale,
+    image.naturalWidth * scale,
+    image.naturalHeight * scale,
   );
 };
 
@@ -205,7 +213,6 @@ export const drawNailOverlays = (
     context.rotate(overlay.angle);
 
     if (asset) {
-      context.rotate(Math.PI);
       drawNailAsset(context, overlay, asset);
       context.restore();
       return;
