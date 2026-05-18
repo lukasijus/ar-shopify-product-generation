@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { computeNailOverlays, type Landmark } from "./nailGeometry";
+import {
+  computeNailOverlays,
+  selectNailAssetVariant,
+  type Landmark,
+} from "./nailGeometry";
 
 const createOpenHandLandmarks = (): Landmark[] => [
   { x: 0.5, y: 0.86 },
@@ -47,6 +51,13 @@ describe("computeNailOverlays", () => {
     expect(overlays).toHaveLength(5);
     expect(overlays.every((overlay) => overlay.width > 0)).toBe(true);
     expect(overlays.every((overlay) => overlay.height > 0)).toBe(true);
+    expect(overlays.map((overlay) => overlay.variant)).toEqual([
+      "angled",
+      "front",
+      "front",
+      "front",
+      "front",
+    ]);
   });
 
   it("places the index overlay between the fingertip and dip landmark", () => {
@@ -114,5 +125,11 @@ describe("computeNailOverlays", () => {
       "index",
       "middle",
     ]);
+  });
+
+  it("selects front, angled, and side variants from finger direction", () => {
+    expect(selectNailAssetVariant("index", 2, 10)).toBe("front");
+    expect(selectNailAssetVariant("index", 8, 10)).toBe("angled");
+    expect(selectNailAssetVariant("thumb", 10, 4)).toBe("side");
   });
 });

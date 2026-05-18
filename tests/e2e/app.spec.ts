@@ -35,7 +35,7 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
     .poll(() => pngAssetRequests.size, {
       message: "loads extracted Blush Sparkle nail assets",
     })
-    .toBe(5);
+    .toBe(15);
 });
 
 test("shows a camera fallback when media devices are unavailable", async ({

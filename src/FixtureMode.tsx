@@ -395,6 +395,17 @@ function FixtureMode() {
           <Box className="fixture-stage">
             <Box className="fixture-panel">
               <Typography className="fixture-panel-label">
+                General input
+              </Typography>
+              <img
+                alt={`${fixture.label} general input`}
+                className="fixture-target-image"
+                src={fixture.imagePath}
+              />
+            </Box>
+
+            <Box className="fixture-panel">
+              <Typography className="fixture-panel-label">
                 Overlay result
               </Typography>
               <Box className="fixture-image-wrap">

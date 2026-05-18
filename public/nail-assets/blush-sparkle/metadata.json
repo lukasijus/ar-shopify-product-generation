@@ -15,7 +15,22 @@
       "confidence": 1.0,
       "tipAnchor": [0.5, 0.92],
       "cuticleAnchor": [0.5, 0.08],
-      "rotationRadians": 3.141592653589793
+      "rotationRadians": 3.141592653589793,
+      "fit": {
+        "widthScale": 1.62,
+        "heightScale": 0.88
+      },
+      "variants": {
+        "front": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_improved_2026-05-19.png"
+        },
+        "angled": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_angled_2026-05-19.png"
+        },
+        "side": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_side_2026-05-19.png"
+        }
+      }
     },
     {
       "finger": "index",
@@ -25,7 +40,22 @@
       "confidence": 1.0,
       "tipAnchor": [0.5, 0.92],
       "cuticleAnchor": [0.5, 0.08],
-      "rotationRadians": 3.141592653589793
+      "rotationRadians": 3.141592653589793,
+      "fit": {
+        "widthScale": 1.58,
+        "heightScale": 0.9
+      },
+      "variants": {
+        "front": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_improved_2026-05-19.png"
+        },
+        "angled": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_angled_2026-05-19.png"
+        },
+        "side": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_side_2026-05-19.png"
+        }
+      }
     },
     {
       "finger": "middle",
@@ -35,7 +65,22 @@
       "confidence": 1.0,
       "tipAnchor": [0.5, 0.92],
       "cuticleAnchor": [0.5, 0.08],
-      "rotationRadians": 3.141592653589793
+      "rotationRadians": 3.141592653589793,
+      "fit": {
+        "widthScale": 1.58,
+        "heightScale": 0.9
+      },
+      "variants": {
+        "front": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_improved_2026-05-19.png"
+        },
+        "angled": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_angled_2026-05-19.png"
+        },
+        "side": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_side_2026-05-19.png"
+        }
+      }
     },
     {
       "finger": "ring",
@@ -45,7 +90,22 @@
       "confidence": 1.0,
       "tipAnchor": [0.5, 0.92],
       "cuticleAnchor": [0.5, 0.08],
-      "rotationRadians": 3.141592653589793
+      "rotationRadians": 3.141592653589793,
+      "fit": {
+        "widthScale": 1.5,
+        "heightScale": 0.9
+      },
+      "variants": {
+        "front": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_improved_2026-05-19.png"
+        },
+        "angled": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_angled_2026-05-19.png"
+        },
+        "side": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_side_2026-05-19.png"
+        }
+      }
     },
     {
       "finger": "pinky",
@@ -55,7 +115,22 @@
       "confidence": 1.0,
       "tipAnchor": [0.5, 0.92],
       "cuticleAnchor": [0.5, 0.08],
-      "rotationRadians": 3.141592653589793
+      "rotationRadians": 3.141592653589793,
+      "fit": {
+        "widthScale": 1.36,
+        "heightScale": 0.9
+      },
+      "variants": {
+        "front": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_improved_2026-05-19.png"
+        },
+        "angled": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_angled_2026-05-19.png"
+        },
+        "side": {
+          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_side_2026-05-19.png"
+        }
+      }
     }
   ]
 }

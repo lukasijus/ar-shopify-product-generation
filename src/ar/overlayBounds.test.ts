@@ -5,6 +5,7 @@ import type { NailOverlay } from "./nailGeometry";
 
 const overlay = (overrides: Partial<NailOverlay> = {}): NailOverlay => ({
   finger: "index",
+  variant: "front",
   centerX: 50,
   centerY: 50,
   width: 20,

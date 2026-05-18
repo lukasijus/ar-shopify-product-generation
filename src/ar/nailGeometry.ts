@@ -5,9 +5,11 @@ export type Landmark = {
 };
 
 export type FingerName = "thumb" | "index" | "middle" | "ring" | "pinky";
+export type NailAssetVariantName = "front" | "angled" | "side";
 
 export type NailOverlay = {
   finger: FingerName;
+  variant: NailAssetVariantName;
   centerX: number;
   centerY: number;
   width: number;
@@ -135,6 +137,25 @@ const dot = (aX: number, aY: number, bX: number, bY: number): number => {
   return (aX * bX + aY * bY) / (aLength * bLength);
 };
 
+export const selectNailAssetVariant = (
+  finger: FingerName,
+  directionX: number,
+  directionY: number,
+): NailAssetVariantName => {
+  const horizontalBias =
+    Math.abs(directionX) / Math.max(Math.abs(directionY), 1);
+
+  if (finger === "thumb" && horizontalBias > 0.92) {
+    return "side";
+  }
+
+  if (horizontalBias > 0.58) {
+    return "angled";
+  }
+
+  return "front";
+};
+
 const isFingerEligible = (
   config: FingerConfig,
   landmarks: Landmark[],
@@ -246,6 +267,7 @@ export const computeNailOverlays = (
     return [
       {
         finger: config.finger,
+        variant: selectNailAssetVariant(config.finger, directionX, directionY),
         centerX: tipPoint.x - unitX * height * config.bedOffsetRatio,
         centerY: tipPoint.y - unitY * height * config.bedOffsetRatio,
         width,

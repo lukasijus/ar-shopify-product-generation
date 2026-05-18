@@ -7,6 +7,7 @@ export type FixtureJudgmentFlag =
   | "missingOverlay"
   | "extraOverlay"
   | "offCanvas"
+  | "aspectMismatch"
   | "targetDiffTooHigh";
 
 export type FixtureEvaluation = {
@@ -19,6 +20,8 @@ export type FixtureEvaluation = {
 
 const targetAverageDifferenceLimit = 42;
 const targetChangedPixelRatioLimit = 0.28;
+const minimumOverlayAspectRatio = 1.2;
+const maximumOverlayAspectRatio = 2.8;
 
 export const evaluateFixtureRender = (
   fixture: HandFixture,
@@ -47,6 +50,19 @@ export const evaluateFixtureRender = (
 
   if (bounds.finite !== bounds.total || bounds.mostlyInside !== bounds.total) {
     flags.push("offCanvas");
+  }
+
+  if (
+    overlays.some((overlay) => {
+      const aspectRatio = overlay.height / Math.max(overlay.width, 1);
+
+      return (
+        aspectRatio < minimumOverlayAspectRatio ||
+        aspectRatio > maximumOverlayAspectRatio
+      );
+    })
+  ) {
+    flags.push("aspectMismatch");
   }
 
   if (

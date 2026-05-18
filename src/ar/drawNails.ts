@@ -169,17 +169,28 @@ const drawNailAsset = (
   overlay: NailOverlay,
   asset: NailAsset,
 ): void => {
-  const image = asset.image;
-  const tipX = asset.tipAnchor[0] * image.naturalWidth;
-  const tipY = asset.tipAnchor[1] * image.naturalHeight;
-  const cuticleX = asset.cuticleAnchor[0] * image.naturalWidth;
-  const cuticleY = asset.cuticleAnchor[1] * image.naturalHeight;
+  const variant =
+    asset.variants[overlay.variant] ??
+    asset.variants.front ??
+    Object.values(asset.variants)[0];
+
+  if (!variant) {
+    return;
+  }
+
+  const image = variant.image;
+  const tipX = variant.tipAnchor[0] * image.naturalWidth;
+  const tipY = variant.tipAnchor[1] * image.naturalHeight;
+  const cuticleX = variant.cuticleAnchor[0] * image.naturalWidth;
+  const cuticleY = variant.cuticleAnchor[1] * image.naturalHeight;
   const anchorLength = Math.max(
     Math.hypot(tipX - cuticleX, tipY - cuticleY),
     1,
   );
-  const targetHeight = overlay.height * 1.16;
-  const scale = targetHeight / anchorLength;
+  const targetHeight = overlay.height * asset.fit.heightScale;
+  const targetWidth = overlay.width * asset.fit.widthScale;
+  const scaleY = targetHeight / anchorLength;
+  const scaleX = targetWidth / Math.max(image.naturalWidth, 1);
   const anchorMidX = (tipX + cuticleX) / 2;
   const anchorMidY = (tipY + cuticleY) / 2;
 
@@ -188,13 +199,13 @@ const drawNailAsset = (
   context.shadowOffsetY = 2;
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
-  context.rotate(asset.rotationRadians);
+  context.rotate(variant.rotationRadians);
   context.drawImage(
     image,
-    -anchorMidX * scale,
-    -anchorMidY * scale,
-    image.naturalWidth * scale,
-    image.naturalHeight * scale,
+    -anchorMidX * scaleX,
+    -anchorMidY * scaleY,
+    image.naturalWidth * scaleX,
+    image.naturalHeight * scaleY,
   );
 };
 

@@ -19,6 +19,7 @@ const fixture = (
 
 const overlay = (finger: NailOverlay["finger"]): NailOverlay => ({
   finger,
+  variant: "front",
   centerX: 10,
   centerY: 10,
   width: 8,
@@ -80,5 +81,16 @@ describe("evaluateFixtureRender", () => {
         },
       ).flags,
     ).toEqual(["offCanvas", "targetDiffTooHigh"]);
+  });
+
+  it("flags implausibly thin or wide overlay aspects", () => {
+    expect(
+      evaluateFixtureRender(
+        fixture(["thumb"]),
+        [{ ...overlay("thumb"), width: 8, height: 40 }],
+        allInsideBounds(1),
+        null,
+      ).flags,
+    ).toEqual(["aspectMismatch"]);
   });
 });

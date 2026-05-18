@@ -40,6 +40,7 @@ test("loads the fixture debug mode", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Synthetic Hand Fixtures" }),
   ).toBeVisible();
+  await expect(page.getByText("General input")).toBeVisible();
   await expect(page.getByTestId("fixture-overlay")).toBeVisible();
   await expect(page.getByText("Flat hand, good light")).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Nail set" })).toHaveText(
@@ -56,6 +57,9 @@ test("captures fixture overlay review images", async ({ page }, testInfo) => {
     await page.goto(`/?mode=fixtures&fixture=${fixture.id}`);
     await expect(
       page.getByRole("heading", { name: "Synthetic Hand Fixtures" }),
+    ).toBeVisible();
+    await expect(
+      page.getByAltText(`${fixture.label} general input`),
     ).toBeVisible();
     await expect(page.getByAltText(`${fixture.label} bare hand`)).toBeVisible();
 

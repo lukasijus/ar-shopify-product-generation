@@ -188,7 +188,7 @@ body {
   overflow: hidden;
   min-height: 420px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   padding: 16px;
   border: 1px solid rgba(23, 60, 69, 0.14);
