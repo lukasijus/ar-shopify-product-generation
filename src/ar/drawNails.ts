@@ -1,5 +1,6 @@
 import type { NailOverlay } from "./nailGeometry";
 import type { NailProductStyle } from "../app/pressOnProducts";
+import type { NailAssetSet } from "./nailAssets";
 
 type Point = {
   x: number;
@@ -163,17 +164,51 @@ const getOverlayStyle = (
   finish: style?.finish ?? "sparkle",
 });
 
+const drawNailAsset = (
+  context: CanvasRenderingContext2D,
+  overlay: NailOverlay,
+  asset: HTMLImageElement,
+): void => {
+  const targetHeight = overlay.height * 1.16;
+  const imageRatio =
+    asset.naturalWidth > 0 && asset.naturalHeight > 0
+      ? asset.naturalWidth / asset.naturalHeight
+      : overlay.width / overlay.height;
+  const targetWidth = Math.max(overlay.width * 0.82, targetHeight * imageRatio);
+
+  context.shadowColor = "rgba(15, 38, 48, 0.22)";
+  context.shadowBlur = 8;
+  context.shadowOffsetY = 2;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(
+    asset,
+    -targetWidth / 2,
+    -targetHeight / 2,
+    targetWidth,
+    targetHeight,
+  );
+};
+
 export const drawNailOverlays = (
   context: CanvasRenderingContext2D,
   overlays: NailOverlay[],
   style?: NailProductStyle,
+  assets?: NailAssetSet | null,
 ): void => {
   overlays.forEach((overlay) => {
     const overlayStyle = getOverlayStyle(overlay, style);
+    const asset = assets?.[overlay.finger];
 
     context.save();
     context.translate(overlay.centerX, overlay.centerY);
     context.rotate(overlay.angle);
+
+    if (asset) {
+      drawNailAsset(context, overlay, asset);
+      context.restore();
+      return;
+    }
 
     const radius = overlay.width / 2;
     const halfWidth = overlay.width / 2;

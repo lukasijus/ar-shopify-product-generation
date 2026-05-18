@@ -3,6 +3,13 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 test("loads the nail try-on prototype on desktop", async ({ page }) => {
+  const assetRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/nail-assets/blush-sparkle/")) {
+      assetRequests.push(request.url());
+    }
+  });
+
   await page.goto("/");
 
   await expect(
@@ -18,6 +25,11 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
   const canvasBox = await page.getByTestId("nail-overlay").boundingBox();
   expect(canvasBox?.width).toBeGreaterThan(300);
   expect(canvasBox?.height).toBeGreaterThan(300);
+  await expect
+    .poll(() => assetRequests.length, {
+      message: "loads extracted Blush Sparkle nail assets",
+    })
+    .toBe(5);
 });
 
 test("shows a camera fallback when media devices are unavailable", async ({

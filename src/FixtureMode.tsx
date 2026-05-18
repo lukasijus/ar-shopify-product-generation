@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { drawLandmarkDebug } from "./ar/debugDraw";
 import { drawNailOverlays } from "./ar/drawNails";
+import { loadNailAssets, type NailAssetSet } from "./ar/nailAssets";
 import {
   createHandImageTracker,
   type HandImageTracker,
@@ -105,6 +106,7 @@ function FixtureMode() {
 
   const [fixture, setFixture] = useState<HandFixture>(getInitialFixture);
   const [product, setProduct] = useState<PressOnProduct>(getInitialProduct);
+  const [nailAssets, setNailAssets] = useState<NailAssetSet | null>(null);
   const [status, setStatus] = useState<FixtureStatus>("idle");
   const [debug, setDebug] = useState(false);
   const [message, setMessage] = useState(
@@ -161,7 +163,7 @@ function FixtureMode() {
       });
 
       if (shouldRenderNailOverlay(fixture)) {
-        drawNailOverlays(context, overlays, product.style);
+        drawNailOverlays(context, overlays, product.style, nailAssets);
       }
 
       if (debug) {
@@ -192,7 +194,7 @@ function FixtureMode() {
           : "The fixture detector failed to render this image.",
       );
     }
-  }, [debug, fixture, product]);
+  }, [debug, fixture, nailAssets, product]);
 
   useEffect(() => {
     return () => trackerRef.current?.close();
@@ -205,6 +207,20 @@ function FixtureMode() {
     params.set("product", product.handle);
     window.history.replaceState(null, "", `?${params.toString()}`);
   }, [fixture, product]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadNailAssets(product.handle).then((assets) => {
+      if (!cancelled) {
+        setNailAssets(assets);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.handle]);
 
   const selectFixture = (fixtureId: string): void => {
     setFixture(findFixtureById(fixtureId));

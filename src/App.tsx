@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createHandTracker, type HandTracker } from "./ar/handTracker";
 import { computeNailOverlays } from "./ar/nailGeometry";
 import { drawNailOverlays } from "./ar/drawNails";
+import { loadNailAssets, type NailAssetSet } from "./ar/nailAssets";
 import { findPressOnProductByHandle } from "./app/pressOnProducts";
 
 type CameraState =
@@ -117,6 +118,21 @@ function App() {
     "Start the camera and hold your hand flat with fingers slightly apart.",
   );
   const [product] = useState(getInitialProduct);
+  const [nailAssets, setNailAssets] = useState<NailAssetSet | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadNailAssets(product.handle).then((assets) => {
+      if (!cancelled) {
+        setNailAssets(assets);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.handle]);
 
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current !== null) {
@@ -178,7 +194,7 @@ function App() {
           width: canvas.width,
           height: canvas.height,
         });
-        drawNailOverlays(context, overlays, product.style);
+        drawNailOverlays(context, overlays, product.style, nailAssets);
         setCameraState("tracking");
         setMessage(`${product.title} is placed over your fingernails.`);
       } else {
@@ -192,7 +208,7 @@ function App() {
         drawFrameRef.current,
       );
     };
-  }, [product]);
+  }, [nailAssets, product]);
 
   const startCamera = useCallback(async () => {
     stopCamera();
