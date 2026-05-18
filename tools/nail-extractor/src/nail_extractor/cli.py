@@ -8,11 +8,13 @@ from pathlib import Path
 from .image_io import find_images, load_rgb, save_png_without_metadata
 from .masks import detect_nail_candidates, export_candidate_pngs, make_review_sheet
 from .metadata import risky_png_chunks
+from .roi import extract_roi_assets, validate_roi_document
 from .scoring import score_image
 
 DEFAULT_INPUT = Path("private/raw/press-on-captures")
 DEFAULT_WORK = Path("private/extraction-work")
 DEFAULT_PUBLIC = Path("public/nail-assets")
+DEFAULT_ROI_SOURCE_DIR = Path("public/roi-sources")
 
 
 def _write_json(path: Path, data: object) -> None:
@@ -123,6 +125,44 @@ def extract_command(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def prepare_roi_source_command(args: argparse.Namespace) -> int:
+    input_path = Path(args.input)
+    output_path = Path(args.output)
+    image = load_rgb(input_path)
+    save_png_without_metadata(image, output_path)
+    print(f"Wrote ROI annotation source: {output_path}")
+    return 0
+
+
+def extract_roi_command(args: argparse.Namespace) -> int:
+    roi_path = Path(args.roi)
+    roi_document = _read_json(roi_path)
+    validate_roi_document(roi_document)
+
+    product_handle = args.product_handle or roi_document["productHandle"]
+    product_work_dir = Path(args.work_dir) / product_handle
+    candidates_dir = product_work_dir / "candidates"
+    assets, failures = extract_roi_assets(roi_document, candidates_dir)
+
+    proposal = {
+        "productHandle": product_handle,
+        "inputDir": str(Path(roi_document["sourceImage"]).parent),
+        "bestSource": roi_document["sourceImage"],
+        "bestSourcePng": roi_document["sourceImage"],
+        "reviewSheet": None,
+        "expectedCount": 5,
+        "candidateCount": len(assets),
+        "status": "needs_review" if not failures else "needs_manual_review",
+        "roiPath": str(roi_path),
+        "candidates": assets,
+        "failures": failures,
+    }
+    proposal_path = product_work_dir / "proposal.json"
+    _write_json(proposal_path, proposal)
+    print(f"Wrote ROI extraction proposal: {proposal_path}")
+    return 1 if failures else 0
+
+
 def approve_command(args: argparse.Namespace) -> int:
     proposal_path = Path(args.proposal)
     proposal = _read_json(proposal_path)
@@ -184,6 +224,24 @@ def build_parser() -> argparse.ArgumentParser:
     extract.add_argument("--product-handle")
     extract.add_argument("--expected-count", type=int, default=5)
     extract.set_defaults(func=extract_command)
+
+    prepare_roi = subparsers.add_parser(
+        "prepare-roi-source",
+        help="Convert one capture image to a browser-loadable PNG.",
+    )
+    prepare_roi.add_argument("--input", required=True)
+    prepare_roi.add_argument(
+        "--output", default=str(DEFAULT_ROI_SOURCE_DIR / "roi-source.png")
+    )
+    prepare_roi.set_defaults(func=prepare_roi_source_command)
+
+    extract_roi = subparsers.add_parser(
+        "extract-roi", help="Extract per-finger clips from a manual ROI JSON file."
+    )
+    extract_roi.add_argument("--roi", required=True)
+    extract_roi.add_argument("--work-dir", default=str(DEFAULT_WORK))
+    extract_roi.add_argument("--product-handle")
+    extract_roi.set_defaults(func=extract_roi_command)
 
     approve = subparsers.add_parser("approve", help="Approve a reviewed proposal.")
     approve.add_argument("--proposal", required=True)

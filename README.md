@@ -35,7 +35,15 @@ Score and extract local press-on nail capture photos:
 ```bash
 npm run nails:score -- --input public/extract-press-on-nails
 npm run nails:extract -- --input public/extract-press-on-nails
+npm run nails:prepare-roi-source -- --input public/extract-press-on-nails/example_1/IMG_1943.HEIC --output public/roi-sources/example_1.png
+npm run nails:extract-roi -- --roi private/extraction-work/example_1/rois.json
 npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
+```
+
+Open the ROI annotator after preparing a source PNG:
+
+```text
+http://127.0.0.1:5173/?mode=annotate-nails&product=example_1&source=/roi-sources/example_1.png
 ```
 
 Raw iPhone capture photos are intentionally ignored by git. Commit only reviewed

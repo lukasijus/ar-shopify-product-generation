@@ -15,6 +15,8 @@
     "assets:strip-metadata": "node scripts/strip-png-private-metadata.mjs public",
     "nails:score": "uv run --project tools/nail-extractor nail-extractor score",
     "nails:extract": "uv run --project tools/nail-extractor nail-extractor extract",
+    "nails:prepare-roi-source": "uv run --project tools/nail-extractor nail-extractor prepare-roi-source",
+    "nails:extract-roi": "uv run --project tools/nail-extractor nail-extractor extract-roi",
     "nails:approve": "uv run --project tools/nail-extractor nail-extractor approve",
     "nails:format": "uv run --project tools/nail-extractor black .",
     "nails:test": "uv run --project tools/nail-extractor pytest"

@@ -19,4 +19,5 @@ __pycache__
 *.tsbuildinfo
 private/
 public/extract-press-on-nails/
+public/roi-sources/
 public/nail-assets/**/*.review.*

@@ -67,6 +67,26 @@ After reviewing a proposal sheet, approve it into public AR assets:
 npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
 ```
 
+For packaged photos, prefer manual ROI extraction:
+
+```bash
+npm run nails:prepare-roi-source -- --input public/extract-press-on-nails/example_1/IMG_1943.HEIC --output public/roi-sources/example_1.png
+```
+
+Then open:
+
+```text
+/?mode=annotate-nails&product=example_1&source=/roi-sources/example_1.png
+```
+
+Draw one rectangle for each finger, save the JSON to
+`private/extraction-work/example_1/rois.json`, and run:
+
+```bash
+npm run nails:extract-roi -- --roi private/extraction-work/example_1/rois.json
+npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
+```
+
 Approved assets are written to `public/nail-assets/<product-handle>/` as
 per-finger transparent PNG files plus `metadata.json`. If candidate count or
 mask quality is poor, recapture the product instead of approving weak assets.
