@@ -40,7 +40,29 @@ npm run nails:extract-roi -- --roi private/extraction-work/example_1/rois.json
 npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
 ```
 
-Open the ROI annotator after preparing a source PNG:
+Manual ROI extraction from the web app:
+
+```text
+http://127.0.0.1:5173/
+```
+
+Click **Extract nails**, upload a PNG/JPEG/WebP package image, draw one box for
+each nail, and save the ROI JSON. Put that JSON somewhere under
+`private/extraction-work/<product>/rois.json`, then run:
+
+```bash
+npm run nails:extract-roi -- --roi private/extraction-work/example_1/rois.json --source-image public/extract-press-on-nails/example_1/IMG_1943.HEIC
+npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
+```
+
+Many browsers do not display HEIC directly. For HEIC captures, either upload a
+converted PNG/JPEG copy in the annotator or prepare a browser-friendly source:
+
+```bash
+npm run nails:prepare-roi-source -- --input public/extract-press-on-nails/example_1/IMG_1943.HEIC --output public/roi-sources/example_1.png
+```
+
+Then open:
 
 ```text
 http://127.0.0.1:5173/?mode=annotate-nails&product=example_1&source=/roi-sources/example_1.png

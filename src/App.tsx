@@ -1,5 +1,6 @@
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
+import ContentCutIcon from "@mui/icons-material/ContentCut";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
@@ -354,6 +355,15 @@ function App() {
               endIcon={<OpenInNewIcon />}
             >
               View product
+            </Button>
+
+            <Button
+              href={`/?mode=annotate-nails&product=${product.handle}`}
+              size="large"
+              startIcon={<ContentCutIcon />}
+              variant="outlined"
+            >
+              Extract nails
             </Button>
           </Stack>
         </Box>

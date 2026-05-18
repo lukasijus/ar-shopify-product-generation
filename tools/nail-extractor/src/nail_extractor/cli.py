@@ -137,6 +137,8 @@ def prepare_roi_source_command(args: argparse.Namespace) -> int:
 def extract_roi_command(args: argparse.Namespace) -> int:
     roi_path = Path(args.roi)
     roi_document = _read_json(roi_path)
+    if args.source_image:
+        roi_document["sourceImage"] = args.source_image
     validate_roi_document(roi_document)
 
     product_handle = args.product_handle or roi_document["productHandle"]
@@ -241,6 +243,7 @@ def build_parser() -> argparse.ArgumentParser:
     extract_roi.add_argument("--roi", required=True)
     extract_roi.add_argument("--work-dir", default=str(DEFAULT_WORK))
     extract_roi.add_argument("--product-handle")
+    extract_roi.add_argument("--source-image")
     extract_roi.set_defaults(func=extract_roi_command)
 
     approve = subparsers.add_parser("approve", help="Approve a reviewed proposal.")

@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { expect, test } from "@playwright/test";
 
 test("loads the nail try-on prototype on desktop", async ({ page }) => {
@@ -80,4 +82,35 @@ test("loads the nail ROI annotator and exports natural-coordinate JSON", async (
     '"productHandle": "blush-sparkle"',
   );
   await expect(page.getByLabel("ROI JSON")).toContainText('"finger": "pinky"');
+});
+
+test("uploads a package image in the nail ROI annotator", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "The ROI annotator is a local desktop tool for mouse-based box drawing.",
+  );
+
+  await page.goto("/?mode=annotate-nails&product=upload-demo");
+  await expect(
+    page.getByRole("heading", { name: "Upload a package image" }),
+  ).toBeVisible();
+
+  await page
+    .getByTestId("annotator-file-input")
+    .setInputFiles(
+      path.resolve("public/shopify/press-ons/source/blush-sparkle.png"),
+    );
+
+  await expect(page.getByAltText("Press-on nail package source")).toBeVisible();
+  await expect(page.locator(".annotator-source-name")).toHaveText(
+    "blush-sparkle.png",
+  );
+  await expect(page.getByLabel("ROI JSON")).toContainText(
+    '"productHandle": "upload-demo"',
+  );
+  await expect(page.getByLabel("ROI JSON")).toContainText(
+    '"sourceImage": "blush-sparkle.png"',
+  );
 });

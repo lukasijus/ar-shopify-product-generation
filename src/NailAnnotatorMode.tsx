@@ -1,6 +1,7 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
   Alert,
   Box,
@@ -17,7 +18,14 @@ import {
   Typography,
   createTheme,
 } from "@mui/material";
-import { useMemo, useRef, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type MouseEvent,
+} from "react";
 
 type FingerName = "thumb" | "index" | "middle" | "ring" | "pinky";
 
@@ -35,6 +43,25 @@ type DragState = {
   startY: number;
   currentX: number;
   currentY: number;
+};
+
+type JsonWritableFileStream = {
+  write: (data: Blob) => Promise<void>;
+  close: () => Promise<void>;
+};
+
+type JsonFileHandle = {
+  createWritable: () => Promise<JsonWritableFileStream>;
+};
+
+type SavePickerWindow = Window & {
+  showSaveFilePicker?: (options: {
+    suggestedName: string;
+    types: Array<{
+      description: string;
+      accept: Record<string, string[]>;
+    }>;
+  }) => Promise<JsonFileHandle>;
 };
 
 const fingers: FingerName[] = ["thumb", "index", "middle", "ring", "pinky"];
@@ -69,7 +96,7 @@ const getParams = () => {
 
   return {
     productHandle: params.get("product") ?? "example_1",
-    sourceImage: params.get("source") ?? "/roi-sources/example_1.png",
+    sourceImage: params.get("source") ?? "",
   };
 };
 
@@ -93,13 +120,31 @@ const normalizeBox = (
 function NailAnnotatorMode() {
   const params = useMemo(() => getParams(), []);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadedUrlRef = useRef<string | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [sourceImage, setSourceImage] = useState(params.sourceImage);
+  const [sourceImageName, setSourceImageName] = useState(
+    params.sourceImage || "Upload a package image",
+  );
+  const [sourceKind, setSourceKind] = useState<"url" | "upload">(
+    params.sourceImage ? "url" : "upload",
+  );
   const [selectedFinger, setSelectedFinger] = useState<FingerName>("thumb");
   const [boxes, setBoxes] = useState<RoiBox[]>([]);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [message, setMessage] = useState(
-    "Draw one rectangle around each nail, then copy or download the ROI JSON.",
+    "Upload a package image, draw one rectangle around each nail, then save the ROI JSON.",
+  );
+
+  useEffect(
+    () => () => {
+      if (uploadedUrlRef.current) {
+        URL.revokeObjectURL(uploadedUrlRef.current);
+      }
+    },
+    [],
   );
 
   const getNaturalPoint = (
@@ -141,9 +186,34 @@ function NailAnnotatorMode() {
     setMessage(`${box.finger} ROI saved.`);
   };
 
+  const uploadImage = (event: ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (uploadedUrlRef.current) {
+      URL.revokeObjectURL(uploadedUrlRef.current);
+    }
+
+    const url = URL.createObjectURL(file);
+    uploadedUrlRef.current = url;
+    setSourceImage(url);
+    setSourceImageName(file.name);
+    setSourceKind("upload");
+    setImageSize({ width: 0, height: 0 });
+    setBoxes([]);
+    setDrag(null);
+    dragRef.current = null;
+    setMessage("Package image loaded. Draw the thumb ROI first.");
+  };
+
+  const roiSourceImage =
+    sourceKind === "upload" ? sourceImageName : sourceImage;
+
   const roiDocument = {
     productHandle: params.productHandle,
-    sourceImage: params.sourceImage,
+    sourceImage: roiSourceImage,
     coordinateSpace: imageSize,
     rois: fingers.flatMap((finger) => {
       const box = boxes.find((candidate) => candidate.finger === finger);
@@ -158,6 +228,7 @@ function NailAnnotatorMode() {
     }),
   };
   const roiJson = JSON.stringify(roiDocument, null, 2);
+  const hasSource = sourceImage.length > 0;
   const complete = boxes.length === fingers.length && imageSize.width > 0;
 
   const copyJson = async (): Promise<void> => {
@@ -173,6 +244,43 @@ function NailAnnotatorMode() {
     link.download = `${params.productHandle}-rois.json`;
     link.click();
     URL.revokeObjectURL(url);
+    setMessage("ROI JSON saved to your downloads.");
+  };
+
+  const saveJson = async (): Promise<void> => {
+    const suggestedName = `${params.productHandle}-rois.json`;
+    const picker = (window as SavePickerWindow).showSaveFilePicker;
+
+    if (!picker) {
+      downloadJson();
+      return;
+    }
+
+    try {
+      const fileHandle = await picker({
+        suggestedName,
+        types: [
+          {
+            description: "ROI JSON",
+            accept: {
+              "application/json": [".json"],
+            },
+          },
+        ],
+      });
+      const writable = await fileHandle.createWritable();
+      await writable.write(
+        new Blob([roiJson + "\n"], { type: "application/json" }),
+      );
+      await writable.close();
+      setMessage("ROI JSON saved.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setMessage("Save cancelled.");
+        return;
+      }
+      downloadJson();
+    }
   };
 
   const clearSelected = (): void => {
@@ -190,7 +298,8 @@ function NailAnnotatorMode() {
           <Box>
             <Typography variant="h4">Nail ROI Annotator</Typography>
             <Typography color="text.secondary">
-              Draw five labeled rectangles in natural image coordinates.
+              Upload a package photo and draw five labeled rectangles in natural
+              image coordinates.
             </Typography>
           </Box>
           <Chip
@@ -206,6 +315,9 @@ function NailAnnotatorMode() {
             className="annotator-stage"
             data-testid="annotator-stage"
             onMouseDown={(event) => {
+              if (!hasSource) {
+                return;
+              }
               event.preventDefault();
               const point = getNaturalPoint(event);
               setDrag({
@@ -224,6 +336,9 @@ function NailAnnotatorMode() {
               };
             }}
             onMouseMove={(event) => {
+              if (!hasSource) {
+                return;
+              }
               const activeDrag = dragRef.current;
               if (!activeDrag) {
                 return;
@@ -238,6 +353,9 @@ function NailAnnotatorMode() {
               setDrag(nextDrag);
             }}
             onMouseUp={() => {
+              if (!hasSource) {
+                return;
+              }
               const activeDrag = dragRef.current;
               if (!activeDrag) {
                 return;
@@ -255,83 +373,132 @@ function NailAnnotatorMode() {
               setDrag(null);
             }}
           >
-            <img
-              ref={imageRef}
-              alt="Press-on nail package source"
-              className="annotator-image"
-              draggable={false}
-              src={params.sourceImage}
-              onLoad={(event) => {
-                const image = event.currentTarget;
-                setImageSize({
-                  width: image.naturalWidth,
-                  height: image.naturalHeight,
-                });
-              }}
-            />
-            <svg
-              className="annotator-overlay"
-              viewBox={`0 0 ${imageSize.width} ${imageSize.height}`}
-            >
-              {boxes.map((box) => (
-                <g key={box.finger}>
-                  <rect
-                    className="annotator-box"
-                    x={box.x}
-                    y={box.y}
-                    width={box.width}
-                    height={box.height}
-                  />
-                  <text x={box.x + 6} y={Math.max(18, box.y - 8)}>
-                    {box.finger}
-                  </text>
-                </g>
-              ))}
-              {drag ? (
-                <rect
-                  className="annotator-box annotator-box-draft"
-                  x={
-                    normalizeBox(
-                      drag.finger,
-                      drag.startX,
-                      drag.startY,
-                      drag.currentX,
-                      drag.currentY,
-                    ).x
-                  }
-                  y={
-                    normalizeBox(
-                      drag.finger,
-                      drag.startX,
-                      drag.startY,
-                      drag.currentX,
-                      drag.currentY,
-                    ).y
-                  }
-                  width={
-                    normalizeBox(
-                      drag.finger,
-                      drag.startX,
-                      drag.startY,
-                      drag.currentX,
-                      drag.currentY,
-                    ).width
-                  }
-                  height={
-                    normalizeBox(
-                      drag.finger,
-                      drag.startX,
-                      drag.startY,
-                      drag.currentX,
-                      drag.currentY,
-                    ).height
-                  }
+            {hasSource ? (
+              <>
+                <img
+                  ref={imageRef}
+                  alt="Press-on nail package source"
+                  className="annotator-image"
+                  draggable={false}
+                  src={sourceImage}
+                  onLoad={(event) => {
+                    const image = event.currentTarget;
+                    setImageSize({
+                      width: image.naturalWidth,
+                      height: image.naturalHeight,
+                    });
+                  }}
                 />
-              ) : null}
-            </svg>
+                <svg
+                  className="annotator-overlay"
+                  viewBox={`0 0 ${imageSize.width} ${imageSize.height}`}
+                >
+                  {boxes.map((box) => (
+                    <g key={box.finger}>
+                      <rect
+                        className="annotator-box"
+                        x={box.x}
+                        y={box.y}
+                        width={box.width}
+                        height={box.height}
+                      />
+                      <text x={box.x + 6} y={Math.max(18, box.y - 8)}>
+                        {box.finger}
+                      </text>
+                    </g>
+                  ))}
+                  {drag ? (
+                    <rect
+                      className="annotator-box annotator-box-draft"
+                      x={
+                        normalizeBox(
+                          drag.finger,
+                          drag.startX,
+                          drag.startY,
+                          drag.currentX,
+                          drag.currentY,
+                        ).x
+                      }
+                      y={
+                        normalizeBox(
+                          drag.finger,
+                          drag.startX,
+                          drag.startY,
+                          drag.currentX,
+                          drag.currentY,
+                        ).y
+                      }
+                      width={
+                        normalizeBox(
+                          drag.finger,
+                          drag.startX,
+                          drag.startY,
+                          drag.currentX,
+                          drag.currentY,
+                        ).width
+                      }
+                      height={
+                        normalizeBox(
+                          drag.finger,
+                          drag.startX,
+                          drag.startY,
+                          drag.currentX,
+                          drag.currentY,
+                        ).height
+                      }
+                    />
+                  ) : null}
+                </svg>
+              </>
+            ) : (
+              <Box className="annotator-empty-state">
+                <UploadFileIcon aria-hidden="true" />
+                <Typography variant="h5">Upload a package image</Typography>
+                <Typography color="text.secondary">
+                  Use a clear PNG, JPEG, or WebP photo of one press-on nail
+                  package.
+                </Typography>
+                <Button
+                  startIcon={<UploadFileIcon />}
+                  variant="contained"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Choose image
+                </Button>
+              </Box>
+            )}
           </Box>
 
           <Stack className="annotator-controls" spacing={2}>
+            <Box className="annotator-source-card">
+              <input
+                ref={fileInputRef}
+                data-testid="annotator-file-input"
+                hidden
+                accept="image/png,image/jpeg,image/webp"
+                type="file"
+                onChange={uploadImage}
+              />
+              <Button
+                fullWidth
+                startIcon={<UploadFileIcon />}
+                variant="contained"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Upload package image
+              </Button>
+              <Typography className="annotator-source-name">
+                {sourceImageName}
+              </Typography>
+              {sourceKind === "upload" ? (
+                <Typography color="text.secondary" variant="body2">
+                  Browser uploads are previews. Use the original local image
+                  path with <code>nails:extract-roi -- --source-image</code>
+                  after saving this JSON.
+                </Typography>
+              ) : null}
+            </Box>
+
             <FormControl fullWidth>
               <InputLabel id="finger-select-label">Finger</InputLabel>
               <Select
@@ -400,9 +567,9 @@ function NailAnnotatorMode() {
                 fullWidth
                 startIcon={<DownloadIcon />}
                 variant="outlined"
-                onClick={downloadJson}
+                onClick={saveJson}
               >
-                Download
+                Save JSON
               </Button>
             </Stack>
           </Stack>
