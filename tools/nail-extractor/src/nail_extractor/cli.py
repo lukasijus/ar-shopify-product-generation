@@ -170,6 +170,7 @@ def approve_command(args: argparse.Namespace) -> int:
     proposal = _read_json(proposal_path)
     product_handle = args.product_handle or proposal["productHandle"]
     output_dir = Path(args.output) / product_handle
+    source_asset_dir = output_dir / "extracted_roi_from_source"
     candidates = proposal.get("candidates", [])
 
     if len(candidates) != proposal.get("expectedCount") and not args.force:
@@ -178,9 +179,11 @@ def approve_command(args: argparse.Namespace) -> int:
             "Use --force only after manually reviewing the proposal."
         )
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    source_asset_dir.mkdir(parents=True, exist_ok=True)
     metadata = {
         "productHandle": product_handle,
+        "activeAssetSet": "extracted_roi_from_source",
+        "sourceAssetSet": "extracted_roi_from_source",
         "sourceProposal": proposal_path.name,
         "bestSource": Path(proposal["bestSource"]).name,
         "assets": [],
@@ -189,7 +192,7 @@ def approve_command(args: argparse.Namespace) -> int:
     for candidate in candidates:
         finger = candidate["finger"]
         source = Path(candidate["assetPath"])
-        target = output_dir / f"{finger}.png"
+        target = source_asset_dir / f"{finger}.png"
         shutil.copyfile(source, target)
         chunks = risky_png_chunks(target)
         if chunks:
@@ -197,7 +200,10 @@ def approve_command(args: argparse.Namespace) -> int:
         metadata["assets"].append(
             {
                 "finger": finger,
-                "path": f"/nail-assets/{product_handle}/{target.name}",
+                "path": (
+                    f"/nail-assets/{product_handle}/"
+                    f"extracted_roi_from_source/{target.name}"
+                ),
                 "bbox": candidate["bbox"],
                 "confidence": candidate["confidence"],
             }

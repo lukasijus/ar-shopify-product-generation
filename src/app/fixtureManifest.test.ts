@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   findFixtureById,
+  getFixtureTargetImagePath,
   handFixtures,
   shouldRenderNailOverlay,
 } from "./fixtureManifest";
@@ -50,13 +51,26 @@ describe("handFixtures", () => {
       const publicPath = fixture.imagePath.replace(/^\//, "");
       expect(existsSync(join(process.cwd(), "public", publicPath))).toBe(true);
 
-      if ("targetImagePath" in fixture && fixture.targetImagePath) {
-        const targetPublicPath = fixture.targetImagePath.replace(/^\//, "");
+      const targetImagePath = getFixtureTargetImagePath(
+        fixture,
+        "blush-sparkle",
+      );
+      if (targetImagePath) {
+        const targetPublicPath = targetImagePath.replace(/^\//, "");
         expect(
           existsSync(join(process.cwd(), "public", targetPublicPath)),
         ).toBe(true);
       }
     });
+  });
+
+  it("resolves product-specific fixture targets", () => {
+    const fixture = findFixtureById("v2-thumb-only-visible");
+
+    expect(getFixtureTargetImagePath(fixture, "blush-sparkle")).toBe(
+      "/test-fixtures/hands/targets/blush-sparkle/thumb-only-visible.png",
+    );
+    expect(getFixtureTargetImagePath(fixture, "puppy-love")).toBeNull();
   });
 
   it("marks hidden-nail fixtures as no-overlay cases", () => {

@@ -64,7 +64,8 @@ def test_extract_and_approve_pipeline(
     assert main() == 0
 
     asset_dir = public_dir / "demo-set"
-    assert sorted(path.name for path in asset_dir.glob("*.png")) == [
+    source_asset_dir = asset_dir / "extracted_roi_from_source"
+    assert sorted(path.name for path in source_asset_dir.glob("*.png")) == [
         "index.png",
         "middle.png",
         "pinky.png",
@@ -73,6 +74,10 @@ def test_extract_and_approve_pipeline(
     ]
     metadata = json.loads((asset_dir / "metadata.json").read_text())
     assert metadata["productHandle"] == "demo-set"
+    assert metadata["activeAssetSet"] == "extracted_roi_from_source"
+    assert metadata["assets"][0]["path"].startswith(
+        "/nail-assets/demo-set/extracted_roi_from_source/"
+    )
     assert "private/" not in json.dumps(metadata)
 
 

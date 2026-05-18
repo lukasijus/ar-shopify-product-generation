@@ -3,7 +3,10 @@ import { join } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-import { handFixtures } from "../../src/app/fixtureManifest";
+import {
+  getFixtureTargetImagePath,
+  handFixtures,
+} from "../../src/app/fixtureManifest";
 
 type TestPressOnProduct = {
   title: string;
@@ -56,7 +59,7 @@ test("captures fixture overlay review images", async ({ page }, testInfo) => {
     ).toBeVisible();
     await expect(page.getByAltText(`${fixture.label} bare hand`)).toBeVisible();
 
-    if (fixture.targetImagePath) {
+    if (getFixtureTargetImagePath(fixture, "blush-sparkle")) {
       await expect(
         page.getByAltText(`${fixture.label} press-on target`),
       ).toBeVisible();
@@ -80,7 +83,7 @@ test("captures fixture overlay review images", async ({ page }, testInfo) => {
     );
 
     await page.locator(".fixture-stage").screenshot({
-      path: `test-results/fixture-overlays/${fixture.id}-${testInfo.project.name}.png`,
+      path: `test-results/fixture-overlays/blush-sparkle/${fixture.id}-${testInfo.project.name}.png`,
     });
   }
 });
@@ -101,7 +104,7 @@ test("checks generated v2 fixture expected finger panels", async ({
     ).toBeVisible();
     await expect(page.getByAltText(`${fixture.label} bare hand`)).toBeVisible();
 
-    if (fixture.targetImagePath) {
+    if (getFixtureTargetImagePath(fixture, "blush-sparkle")) {
       await expect(page.getByText("Target reference")).toBeVisible();
       await expect(
         page.getByAltText(`${fixture.label} press-on target`),

@@ -7,7 +7,9 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
   page.on("request", (request) => {
     const url = request.url();
     if (
-      url.includes("/nail-assets/blush-sparkle-polished/") &&
+      url.includes(
+        "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/",
+      ) &&
       url.endsWith(".png")
     ) {
       pngAssetRequests.add(url);

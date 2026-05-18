@@ -10,6 +10,7 @@ export type NailAsset = {
 export type NailAssetSet = Partial<Record<FingerName, NailAsset>>;
 
 type NailAssetMetadata = {
+  activeAssetSet?: string;
   assets?: Array<{
     finger: FingerName;
     path?: string;
@@ -22,9 +23,10 @@ type NailAssetMetadata = {
 const fingers: FingerName[] = ["thumb", "index", "middle", "ring", "pinky"];
 const defaultTipAnchor: [number, number] = [0.5, 0.92];
 const defaultCuticleAnchor: [number, number] = [0.5, 0.08];
+const defaultActiveAssetSet = "extracted_roi_from_source_improved";
 
 export const getNailAssetUrl = (productHandle: string, finger: FingerName) =>
-  `/nail-assets/${productHandle}/${finger}.png`;
+  `/nail-assets/${productHandle}/${defaultActiveAssetSet}/${finger}.png`;
 
 export const getNailAssetMetadataUrl = (productHandle: string) =>
   `/nail-assets/${productHandle}/metadata.json`;
@@ -51,8 +53,11 @@ export const loadNailAssets = async (
     const loaded = await Promise.all(
       fingers.map(async (finger) => {
         const assetMetadata = metadataByFinger.get(finger);
+        const fallbackAssetSet =
+          metadata?.activeAssetSet ?? defaultActiveAssetSet;
         const image = await loadImage(
-          assetMetadata?.path ?? getNailAssetUrl(productHandle, finger),
+          assetMetadata?.path ??
+            `/nail-assets/${productHandle}/${fallbackAssetSet}/${finger}.png`,
         );
 
         return {

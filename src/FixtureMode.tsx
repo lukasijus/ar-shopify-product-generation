@@ -21,6 +21,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { drawLandmarkDebug } from "./ar/debugDraw";
 import { drawNailOverlays } from "./ar/drawNails";
+import {
+  evaluateFixtureRender,
+  formatFixtureEvaluation,
+} from "./ar/fixtureEvaluation";
 import { loadNailAssets, type NailAssetSet } from "./ar/nailAssets";
 import {
   createHandImageTracker,
@@ -31,6 +35,7 @@ import { summarizeOverlayBounds } from "./ar/overlayBounds";
 import { compareFixtureRender } from "./ar/targetComparison";
 import {
   findFixtureById,
+  getFixtureTargetImagePath,
   handFixtures,
   shouldRenderNailOverlay,
   type HandFixture,
@@ -114,6 +119,7 @@ function FixtureMode() {
   const [message, setMessage] = useState(
     "Choose a fixture and render the current nail overlay algorithm.",
   );
+  const targetImagePath = getFixtureTargetImagePath(fixture, product.handle);
 
   const renderFixture = useCallback(async () => {
     const image = imageRef.current;
@@ -183,15 +189,22 @@ function FixtureMode() {
         const renderedFingers = overlays
           .map((overlay) => overlay.finger)
           .join(", ");
-        const comparison = targetImageRef.current
-          ? compareFixtureRender(image, canvas, targetImageRef.current)
-          : null;
+        const comparison =
+          targetImagePath && targetImageRef.current
+            ? compareFixtureRender(image, canvas, targetImageRef.current)
+            : null;
+        const evaluation = evaluateFixtureRender(
+          fixture,
+          overlays,
+          bounds,
+          comparison,
+        );
         const comparisonText =
           comparison?.compared && fixture.targetKind === "imagegen"
             ? ` Target diff: ${comparison.averageDifference.toFixed(1)} avg, ${(comparison.changedPixelRatio * 100).toFixed(1)}% changed.`
             : "";
         setMessage(
-          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}.${comparisonText}`,
+          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}. ${formatFixtureEvaluation(evaluation)}.${comparisonText}`,
         );
       } else {
         setMessage(
@@ -206,7 +219,7 @@ function FixtureMode() {
           : "The fixture detector failed to render this image.",
       );
     }
-  }, [debug, fixture, nailAssets, product]);
+  }, [debug, fixture, nailAssets, product, targetImagePath]);
 
   useEffect(() => {
     return () => trackerRef.current?.close();
@@ -401,7 +414,7 @@ function FixtureMode() {
               </Box>
             </Box>
 
-            {fixture.targetImagePath ? (
+            {targetImagePath ? (
               <Box className="fixture-panel">
                 <Typography className="fixture-panel-label">
                   Target reference
@@ -410,7 +423,7 @@ function FixtureMode() {
                   ref={targetImageRef}
                   alt={`${fixture.label} press-on target`}
                   className="fixture-target-image"
-                  src={fixture.targetImagePath}
+                  src={targetImagePath}
                   onLoad={renderFixture}
                 />
               </Box>
