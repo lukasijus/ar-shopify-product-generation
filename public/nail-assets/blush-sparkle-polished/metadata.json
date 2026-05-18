@@ -1,0 +1,38 @@
+{
+  "productHandle": "blush-sparkle-polished",
+  "sourceProposal": "proposal.json",
+  "bestSource": "source-blush-sparkle.png",
+  "assets": [
+    {
+      "finger": "thumb",
+      "path": "/nail-assets/blush-sparkle-polished/thumb.png",
+      "bbox": [302, 563, 70, 177],
+      "confidence": 1.0
+    },
+    {
+      "finger": "index",
+      "path": "/nail-assets/blush-sparkle-polished/index.png",
+      "bbox": [368, 556, 73, 180],
+      "confidence": 1.0
+    },
+    {
+      "finger": "middle",
+      "path": "/nail-assets/blush-sparkle-polished/middle.png",
+      "bbox": [440, 552, 72, 181],
+      "confidence": 1.0
+    },
+    {
+      "finger": "ring",
+      "path": "/nail-assets/blush-sparkle-polished/ring.png",
+      "bbox": [512, 552, 62, 174],
+      "confidence": 1.0
+    },
+    {
+      "finger": "pinky",
+      "path": "/nail-assets/blush-sparkle-polished/pinky.png",
+      "bbox": [187, 558, 106, 193],
+      "confidence": 1.0
+    }
+  ],
+  "sourceAssetSet": "blush-sparkle"
+}

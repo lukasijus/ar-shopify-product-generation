@@ -40,6 +40,19 @@ describe("pressOnProducts", () => {
       expect(product.style.baseColor).toMatch(/^#[0-9a-f]{6}$/i);
       expect(product.style.accentColor).toMatch(/^#[0-9a-f]{6}$/i);
       expect(product.style.tipColor).toMatch(/^#[0-9a-f]{6}$/i);
+      if (product.assetHandle) {
+        expect(
+          existsSync(
+            join(
+              process.cwd(),
+              "public",
+              "nail-assets",
+              product.assetHandle,
+              "metadata.json",
+            ),
+          ),
+        ).toBe(true);
+      }
     });
   });
 

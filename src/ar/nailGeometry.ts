@@ -29,6 +29,10 @@ type FingerConfig = {
   accentColor: string;
 };
 
+export type NailOverlayOptions = {
+  allowedFingers?: readonly FingerName[];
+};
+
 const FINGERS: FingerConfig[] = [
   {
     finger: "thumb",
@@ -114,15 +118,109 @@ const toCanvasPoint = (
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
+const isFiniteLandmark = (
+  landmark: Landmark | undefined,
+): landmark is Landmark =>
+  Boolean(
+    landmark &&
+    Number.isFinite(landmark.x) &&
+    Number.isFinite(landmark.y) &&
+    (landmark.z === undefined || Number.isFinite(landmark.z)),
+  );
+
+const dot = (aX: number, aY: number, bX: number, bY: number): number => {
+  const aLength = Math.max(Math.hypot(aX, aY), 1);
+  const bLength = Math.max(Math.hypot(bX, bY), 1);
+
+  return (aX * bX + aY * bY) / (aLength * bLength);
+};
+
+const isFingerEligible = (
+  config: FingerConfig,
+  landmarks: Landmark[],
+  size: OverlayCanvasSize,
+): boolean => {
+  const wrist = landmarks[0];
+  const tip = landmarks[config.tip];
+  const dip = landmarks[config.dip];
+  const pip = landmarks[config.pip];
+
+  if (
+    !isFiniteLandmark(wrist) ||
+    !isFiniteLandmark(tip) ||
+    !isFiniteLandmark(dip) ||
+    !isFiniteLandmark(pip)
+  ) {
+    return false;
+  }
+
+  const tipPoint = toCanvasPoint(tip, size);
+  const dipPoint = toCanvasPoint(dip, size);
+  const pipPoint = toCanvasPoint(pip, size);
+  const wristPoint = toCanvasPoint(wrist, size);
+  const edgePadding = Math.min(size.width, size.height) * 0.015;
+
+  if (
+    tipPoint.x < edgePadding ||
+    tipPoint.x > size.width - edgePadding ||
+    tipPoint.y < edgePadding ||
+    tipPoint.y > size.height - edgePadding
+  ) {
+    return false;
+  }
+
+  const distalLength = distance(tip, dip, size);
+  const supportLength = distance(dip, pip, size);
+  if (distalLength < 7 || supportLength < 7) {
+    return false;
+  }
+
+  const distalX = tipPoint.x - dipPoint.x;
+  const distalY = tipPoint.y - dipPoint.y;
+  const supportX = dipPoint.x - pipPoint.x;
+  const supportY = dipPoint.y - pipPoint.y;
+  const extensionDot = dot(distalX, distalY, supportX, supportY);
+  if (extensionDot < -0.1) {
+    return false;
+  }
+
+  const wristToTip = Math.hypot(
+    tipPoint.x - wristPoint.x,
+    tipPoint.y - wristPoint.y,
+  );
+  const wristToDip = Math.hypot(
+    dipPoint.x - wristPoint.x,
+    dipPoint.y - wristPoint.y,
+  );
+  if (wristToTip < wristToDip * 0.96) {
+    return false;
+  }
+
+  return true;
+};
+
 export const computeNailOverlays = (
   landmarks: Landmark[],
   size: OverlayCanvasSize,
+  options: NailOverlayOptions = {},
 ): NailOverlay[] => {
   if (landmarks.length < 21 || size.width <= 0 || size.height <= 0) {
     return [];
   }
 
-  return FINGERS.map((config) => {
+  const allowedFingers = options.allowedFingers
+    ? new Set<FingerName>(options.allowedFingers)
+    : null;
+
+  return FINGERS.flatMap((config) => {
+    if (allowedFingers && !allowedFingers.has(config.finger)) {
+      return [];
+    }
+
+    if (!isFingerEligible(config, landmarks, size)) {
+      return [];
+    }
+
     const tip = landmarks[config.tip];
     const dip = landmarks[config.dip];
     const pip = landmarks[config.pip];
@@ -145,15 +243,17 @@ export const computeNailOverlays = (
     const width = clamp(segmentLength * config.widthRatio, 9, 48);
     const height = clamp(segmentLength * config.lengthRatio, 16, 78);
 
-    return {
-      finger: config.finger,
-      centerX: tipPoint.x - unitX * height * config.bedOffsetRatio,
-      centerY: tipPoint.y - unitY * height * config.bedOffsetRatio,
-      width,
-      height,
-      angle,
-      color: config.color,
-      accentColor: config.accentColor,
-    };
+    return [
+      {
+        finger: config.finger,
+        centerX: tipPoint.x - unitX * height * config.bedOffsetRatio,
+        centerY: tipPoint.y - unitY * height * config.bedOffsetRatio,
+        width,
+        height,
+        angle,
+        color: config.color,
+        accentColor: config.accentColor,
+      },
+    ];
   });
 };

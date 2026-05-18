@@ -178,8 +178,11 @@ function FixtureMode() {
 
       setStatus("detected");
       if (shouldRenderNailOverlay(fixture)) {
+        const renderedFingers = overlays
+          .map((overlay) => overlay.finger)
+          .join(", ");
         setMessage(
-          `Rendered ${overlays.length} overlays. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}.`,
+          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}.`,
         );
       } else {
         setMessage(
@@ -211,16 +214,18 @@ function FixtureMode() {
   useEffect(() => {
     let cancelled = false;
 
-    void loadNailAssets(product.handle).then((assets) => {
-      if (!cancelled) {
-        setNailAssets(assets);
-      }
-    });
+    void loadNailAssets(product.assetHandle ?? product.handle).then(
+      (assets) => {
+        if (!cancelled) {
+          setNailAssets(assets);
+        }
+      },
+    );
 
     return () => {
       cancelled = true;
     };
-  }, [product.handle]);
+  }, [product.assetHandle, product.handle]);
 
   const selectFixture = (fixtureId: string): void => {
     setFixture(findFixtureById(fixtureId));
@@ -309,7 +314,11 @@ function FixtureMode() {
               <Chip label={product.style.finish} variant="outlined" />
               <Chip
                 color={fixture.visibleNails ? "success" : "warning"}
-                label={fixture.visibleNails ? "visible nails" : "no overlay"}
+                label={
+                  fixture.visibleNails
+                    ? `${fixture.expectedVisibleFingers.length} expected`
+                    : "no overlay"
+                }
                 variant={fixture.visibleNails ? "outlined" : "filled"}
               />
             </Stack>
@@ -393,6 +402,19 @@ function FixtureMode() {
                   className="fixture-target-image"
                   src={fixture.targetImagePath}
                 />
+              </Box>
+            ) : fixture.expectedVisibleFingers.length > 0 ? (
+              <Box className="fixture-panel fixture-negative-panel">
+                <Typography className="fixture-panel-label">
+                  Expected result
+                </Typography>
+                <Typography variant="h5">
+                  {fixture.expectedVisibleFingers.join(", ")}
+                </Typography>
+                <Typography color="text.secondary">
+                  Only these visible nail beds should receive overlays in this
+                  generated fixture.
+                </Typography>
               </Box>
             ) : (
               <Box className="fixture-panel fixture-negative-panel">

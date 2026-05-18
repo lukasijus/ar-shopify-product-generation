@@ -25,6 +25,10 @@ const productReviewFixtures = handFixtures.filter(
     ].includes(fixture.id),
 );
 
+const v2PresenceFixtures = handFixtures.filter((fixture) =>
+  fixture.id.startsWith("v2-"),
+);
+
 test("loads the fixture debug mode", async ({ page }) => {
   test.setTimeout(90_000);
 
@@ -39,7 +43,7 @@ test("loads the fixture debug mode", async ({ page }) => {
     "Blush Sparkle",
   );
   await expect(page.getByText("Target reference")).toBeVisible();
-  await expect(page.getByText("visible nails")).toBeVisible();
+  await expect(page.getByText("5 expected")).toBeVisible();
 });
 
 test("captures fixture overlay review images", async ({ page }, testInfo) => {
@@ -56,6 +60,13 @@ test("captures fixture overlay review images", async ({ page }, testInfo) => {
       await expect(
         page.getByAltText(`${fixture.label} press-on target`),
       ).toBeVisible();
+    } else if (fixture.expectedVisibleFingers.length > 0) {
+      await expect(page.getByText("Expected result")).toBeVisible();
+      await expect(
+        page.getByRole("heading", {
+          name: fixture.expectedVisibleFingers.join(", "),
+        }),
+      ).toBeVisible();
     } else {
       await expect(page.getByText("Expected result")).toBeVisible();
       await expect(
@@ -71,6 +82,30 @@ test("captures fixture overlay review images", async ({ page }, testInfo) => {
     await page.locator(".fixture-stage").screenshot({
       path: `test-results/fixture-overlays/${fixture.id}-${testInfo.project.name}.png`,
     });
+  }
+});
+
+test("checks generated v2 fixture expected finger panels", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(360_000);
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "The generated fixture matrix is checked on desktop to keep runs bounded.",
+  );
+
+  for (const fixture of v2PresenceFixtures) {
+    await page.goto(`/?mode=fixtures&fixture=${fixture.id}`);
+    await expect(
+      page.getByRole("heading", { name: "Synthetic Hand Fixtures" }),
+    ).toBeVisible();
+    await expect(page.getByAltText(`${fixture.label} bare hand`)).toBeVisible();
+
+    await expect(page.getByText("Expected result")).toBeVisible();
+    await expect(page.getByTestId("fixture-status-message")).toContainText(
+      /Rendered|MediaPipe did not detect|failed|No visible nail beds/,
+      { timeout: 60_000 },
+    );
   }
 });
 

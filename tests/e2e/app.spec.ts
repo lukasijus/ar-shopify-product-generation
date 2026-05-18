@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 test("loads the nail try-on prototype on desktop", async ({ page }) => {
   const assetRequests: string[] = [];
   page.on("request", (request) => {
-    if (request.url().includes("/nail-assets/blush-sparkle/")) {
+    if (request.url().includes("/nail-assets/blush-sparkle-polished/")) {
       assetRequests.push(request.url());
     }
   });

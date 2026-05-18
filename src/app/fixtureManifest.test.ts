@@ -28,6 +28,20 @@ describe("handFixtures", () => {
       "phone-occluded-fingertips",
       "pocket-covered-fingers",
       "fingertips-out-of-frame",
+      "v2-thumb-index-visible",
+      "v2-all-five-visible",
+      "v2-peace-index-middle",
+      "v2-thumb-only-visible",
+      "v2-index-middle-ring-visible",
+      "v2-sideways-thumb-index",
+      "v2-fingertips-cropped",
+      "v2-no-visible-fist",
+      "v2-mug-occluded-thumb-ring",
+      "v2-low-light-all-five",
+      "v2-busy-background-all-five",
+      "v2-ring-pinky-visible",
+      "v2-close-fingers-all-five",
+      "v2-far-camera-all-five",
     ]);
   });
 
@@ -47,17 +61,26 @@ describe("handFixtures", () => {
 
   it("marks hidden-nail fixtures as no-overlay cases", () => {
     const negativeFixtures = handFixtures.filter(
-      (fixture) => !fixture.visibleNails,
+      (fixture) => fixture.expectedVisibleFingers.length === 0,
     );
 
-    expect(negativeFixtures).toHaveLength(8);
+    expect(negativeFixtures).toHaveLength(10);
     expect(
       negativeFixtures.every((fixture) => !shouldRenderNailOverlay(fixture)),
     ).toBe(true);
     expect(
       handFixtures
-        .filter((fixture) => fixture.visibleNails)
+        .filter((fixture) => fixture.expectedVisibleFingers.length > 0)
         .every((fixture) => shouldRenderNailOverlay(fixture)),
+    ).toBe(true);
+  });
+
+  it("keeps legacy visibleNails aligned with per-finger expectations", () => {
+    expect(
+      handFixtures.every(
+        (fixture) =>
+          fixture.visibleNails === fixture.expectedVisibleFingers.length > 0,
+      ),
     ).toBe(true);
   });
 

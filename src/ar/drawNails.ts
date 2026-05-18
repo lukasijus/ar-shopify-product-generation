@@ -205,6 +205,7 @@ export const drawNailOverlays = (
     context.rotate(overlay.angle);
 
     if (asset) {
+      context.rotate(Math.PI);
       drawNailAsset(context, overlay, asset);
       context.restore();
       return;

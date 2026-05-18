@@ -25,6 +25,7 @@ export type PressOnProduct = {
   productUrl: string;
   imageUrl: string;
   localImagePath: string;
+  assetHandle?: string;
   style: NailProductStyle;
 };
 

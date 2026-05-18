@@ -123,16 +123,18 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    void loadNailAssets(product.handle).then((assets) => {
-      if (!cancelled) {
-        setNailAssets(assets);
-      }
-    });
+    void loadNailAssets(product.assetHandle ?? product.handle).then(
+      (assets) => {
+        if (!cancelled) {
+          setNailAssets(assets);
+        }
+      },
+    );
 
     return () => {
       cancelled = true;
     };
-  }, [product.handle]);
+  }, [product.assetHandle, product.handle]);
 
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current !== null) {
