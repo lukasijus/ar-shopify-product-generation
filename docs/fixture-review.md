@@ -48,6 +48,29 @@ the core visible-hand fixtures into `test-results/product-overlays/`. These
 images are review artifacts for realism and alignment, not automated pixel
 truth yet.
 
+## Nail Asset Extraction
+
+Raw press-on nail capture photos should stay local and ignored. The extractor
+can read HEIC/PNG/JPEG/WebP captures from a folder like
+`public/extract-press-on-nails/` or `private/raw/press-on-captures/`, score the
+candidate photos, generate mask proposals, and write review artifacts to
+`private/extraction-work/`.
+
+```bash
+npm run nails:score -- --input public/extract-press-on-nails
+npm run nails:extract -- --input public/extract-press-on-nails
+```
+
+After reviewing a proposal sheet, approve it into public AR assets:
+
+```bash
+npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
+```
+
+Approved assets are written to `public/nail-assets/<product-handle>/` as
+per-finger transparent PNG files plus `metadata.json`. If candidate count or
+mask quality is poor, recapture the product instead of approving weak assets.
+
 ## Known Limitations
 
 - MediaPipe hand landmarks do not locate the actual nail bed; placement is still

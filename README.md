@@ -30,6 +30,17 @@ npm run shopify:download-press-ons
 npm run assets:strip-metadata
 ```
 
+Score and extract local press-on nail capture photos:
+
+```bash
+npm run nails:score -- --input public/extract-press-on-nails
+npm run nails:extract -- --input public/extract-press-on-nails
+npm run nails:approve -- --proposal private/extraction-work/example_1/proposal.json
+```
+
+Raw iPhone capture photos are intentionally ignored by git. Commit only reviewed
+assets from `public/nail-assets/`.
+
 ## Verification
 
 ```bash
@@ -37,6 +48,7 @@ npm run format
 npm run lint
 npm run test
 npm run build
+npm run nails:test
 npm run e2e
 ```
 

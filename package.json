@@ -10,9 +10,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "format": "prettier --write \"**/*.{css,html,js,json,ts,tsx}\"",
+    "format": "prettier --write \"**/*.{css,html,js,json,ts,tsx}\" && uv run --project tools/nail-extractor black .",
     "shopify:download-press-ons": "node scripts/download-shopify-press-ons.mjs",
-    "assets:strip-metadata": "node scripts/strip-png-private-metadata.mjs public"
+    "assets:strip-metadata": "node scripts/strip-png-private-metadata.mjs public",
+    "nails:score": "uv run --project tools/nail-extractor nail-extractor score",
+    "nails:extract": "uv run --project tools/nail-extractor nail-extractor extract",
+    "nails:approve": "uv run --project tools/nail-extractor nail-extractor approve",
+    "nails:format": "uv run --project tools/nail-extractor black .",
+    "nails:test": "uv run --project tools/nail-extractor pytest"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

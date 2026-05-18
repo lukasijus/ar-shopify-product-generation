@@ -8,7 +8,15 @@ dist
 .wrangler
 .vercel
 .netlify
+.venv
+**/.venv
 playwright-report
 test-results
 coverage
+.pytest_cache
+__pycache__
+*.py[cod]
 *.tsbuildinfo
+private/
+public/extract-press-on-nails/
+public/nail-assets/**/*.review.*
