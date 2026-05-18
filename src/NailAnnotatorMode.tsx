@@ -1,6 +1,7 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import TerminalIcon from "@mui/icons-material/Terminal";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
   Alert,
@@ -117,6 +118,14 @@ const normalizeBox = (
   height: Math.round(Math.abs(currentY - startY)),
 });
 
+const toLocalPublicPath = (source: string): string => {
+  if (source.startsWith("/")) {
+    return `public${source}`;
+  }
+
+  return source;
+};
+
 function NailAnnotatorMode() {
   const params = useMemo(() => getParams(), []);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -230,10 +239,23 @@ function NailAnnotatorMode() {
   const roiJson = JSON.stringify(roiDocument, null, 2);
   const hasSource = sourceImage.length > 0;
   const complete = boxes.length === fingers.length && imageSize.width > 0;
+  const roiSavePath = `private/extraction-work/${params.productHandle}/rois.json`;
+  const sourceImagePath =
+    sourceKind === "upload"
+      ? "<original-package-image-path>"
+      : toLocalPublicPath(sourceImage);
+  const extractionCommand = `npm run nails:extract-roi -- --roi ${roiSavePath} --source-image ${sourceImagePath}`;
+  const approveCommand = `npm run nails:approve -- --proposal private/extraction-work/${params.productHandle}/proposal.json`;
+  const nextCommands = `${extractionCommand}\n${approveCommand}`;
 
   const copyJson = async (): Promise<void> => {
     await navigator.clipboard.writeText(roiJson);
     setMessage("ROI JSON copied to clipboard.");
+  };
+
+  const copyNextCommands = async (): Promise<void> => {
+    await navigator.clipboard.writeText(nextCommands);
+    setMessage("Next terminal commands copied to clipboard.");
   };
 
   const downloadJson = (): void => {
@@ -572,6 +594,46 @@ function NailAnnotatorMode() {
                 Save JSON
               </Button>
             </Stack>
+
+            <Box className="annotator-next-step">
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <TerminalIcon color="primary" />
+                <Typography variant="h6">Next step</Typography>
+              </Stack>
+              <Typography color="text.secondary" variant="body2">
+                Save the ROI JSON as <code>{roiSavePath}</code>, then run these
+                commands from the project root.
+              </Typography>
+              {sourceKind === "upload" ? (
+                <Alert severity="warning">
+                  Replace <code>{sourceImagePath}</code> with the original file
+                  path, for example{" "}
+                  <code>
+                    public/extract-press-on-nails/example_1/IMG_1943.HEIC
+                  </code>
+                  .
+                </Alert>
+              ) : null}
+              <TextField
+                multiline
+                fullWidth
+                minRows={4}
+                label="Next terminal commands"
+                value={nextCommands}
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                  },
+                }}
+              />
+              <Button
+                startIcon={<ContentCopyIcon />}
+                variant="outlined"
+                onClick={copyNextCommands}
+              >
+                Copy commands
+              </Button>
+            </Box>
           </Stack>
         </Box>
       </Box>

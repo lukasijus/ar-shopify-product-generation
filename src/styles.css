@@ -374,6 +374,20 @@ body {
   font-weight: 700;
 }
 
+.annotator-next-step {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(22, 74, 91, 0.18);
+  background: #f8fbfc;
+}
+
+.annotator-next-step code {
+  overflow-wrap: anywhere;
+  color: #164a5b;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .fixture-shell {
     padding: 18px;

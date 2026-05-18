@@ -113,4 +113,10 @@ test("uploads a package image in the nail ROI annotator", async ({
   await expect(page.getByLabel("ROI JSON")).toContainText(
     '"sourceImage": "blush-sparkle.png"',
   );
+  await expect(page.getByLabel("Next terminal commands")).toContainText(
+    "private/extraction-work/upload-demo/rois.json",
+  );
+  await expect(page.getByLabel("Next terminal commands")).toContainText(
+    "--source-image <original-package-image-path>",
+  );
 });
