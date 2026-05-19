@@ -239,7 +239,7 @@ export type NailVisibilityGate = (
   size: OverlayCanvasSize,
 ) => boolean | Promise<boolean>;
 
-const createNailOverlay = (
+export const createNailOverlay = (
   config: FingerConfig,
   landmarks: Landmark[],
   size: OverlayCanvasSize,

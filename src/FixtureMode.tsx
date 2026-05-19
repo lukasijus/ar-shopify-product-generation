@@ -36,6 +36,12 @@ import {
   type Landmark,
 } from "./ar/nailGeometry";
 import { summarizeOverlayBounds } from "./ar/overlayBounds";
+import {
+  CompositeNailPlacementModel,
+  extractNailPlacementFeatures,
+  getHeuristicVariantIndex,
+  type NailPlacementComparison,
+} from "./ar/nailPlacement";
 import { compareFixtureRender } from "./ar/targetComparison";
 import {
   CompositeNailVisibilityModel,
@@ -120,6 +126,7 @@ function FixtureMode() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const trackerRef = useRef<HandImageTracker | null>(null);
   const visibilityModelRef = useRef<CompositeNailVisibilityModel | null>(null);
+  const placementModelRef = useRef<CompositeNailPlacementModel | null>(null);
   const renderInFlightRef = useRef(false);
 
   const [fixture, setFixture] = useState<HandFixture>(getInitialFixture);
@@ -133,15 +140,23 @@ function FixtureMode() {
   const [visibilityComparison, setVisibilityComparison] = useState<
     NailVisibilityComparison[]
   >([]);
+  const [placementComparison, setPlacementComparison] = useState<
+    NailPlacementComparison[]
+  >([]);
   const targetImagePath = getFixtureTargetImagePath(fixture, product.handle);
 
   useEffect(() => {
     const visibilityModel = new CompositeNailVisibilityModel();
+    const placementModel = new CompositeNailPlacementModel();
     visibilityModelRef.current = visibilityModel;
+    placementModelRef.current = placementModel;
 
     return () => {
       if (visibilityModelRef.current === visibilityModel) {
         visibilityModelRef.current = null;
+      }
+      if (placementModelRef.current === placementModel) {
+        placementModelRef.current = null;
       }
     };
   }, []);
@@ -170,9 +185,10 @@ function FixtureMode() {
     try {
       trackerRef.current ??= await createHandImageTracker();
       const visibilityModel = visibilityModelRef.current;
-      if (!visibilityModel) {
+      const placementModel = placementModelRef.current;
+      if (!visibilityModel || !placementModel) {
         setStatus("error");
-        setMessage("The nail visibility model could not be initialized.");
+        setMessage("The nail models could not be initialized.");
         return;
       }
 
@@ -197,9 +213,16 @@ function FixtureMode() {
           detected: false,
           rows: [],
         };
+        window.__alwaysLikePlacementTrainingSample = {
+          fixtureId: fixture.id,
+          imagePath: fixture.imagePath,
+          detected: false,
+          rows: [],
+        };
         setStatus("no-hand");
         setMessage("MediaPipe did not detect a hand in this fixture.");
         setVisibilityComparison([]);
+        setPlacementComparison([]);
         return;
       }
 
@@ -242,20 +265,95 @@ function FixtureMode() {
                 .visible,
           )
         : [];
-      const bounds = summarizeOverlayBounds(overlays, {
+      const refinedOverlays = [];
+      for (const overlay of overlays) {
+        const config = fingerConfigs.find(
+          (candidate) => candidate.finger === overlay.finger,
+        );
+        if (!config) {
+          refinedOverlays.push(overlay);
+          continue;
+        }
+
+        const placement = await placementModel.predict(
+          config,
+          landmarks,
+          {
+            width: canvas.width,
+            height: canvas.height,
+          },
+          overlay,
+        );
+        refinedOverlays.push(placement.overlay);
+      }
+      const placementModelComparison = await placementModel.compare(
+        overlays,
+        landmarks,
+        {
+          width: canvas.width,
+          height: canvas.height,
+        },
+      );
+      setPlacementComparison(placementModelComparison);
+
+      window.__alwaysLikePlacementTrainingSample = {
+        fixtureId: fixture.id,
+        imagePath: fixture.imagePath,
+        detected: true,
+        rows: overlays.flatMap((overlay) => {
+          const config = fingerConfigs.find(
+            (candidate) => candidate.finger === overlay.finger,
+          );
+          if (!config) {
+            return [];
+          }
+
+          return [
+            {
+              finger: config.finger,
+              label: fixture.expectedVisibleFingers.includes(config.finger)
+                ? 1
+                : 0,
+              features: extractNailPlacementFeatures(
+                config,
+                landmarks,
+                {
+                  width: canvas.width,
+                  height: canvas.height,
+                },
+                overlay,
+                modelComparison.find((item) => item.finger === config.finger)
+                  ?.model.confidence ?? 1,
+              ),
+              heuristic: {
+                centerX: overlay.centerX,
+                centerY: overlay.centerY,
+                width: overlay.width,
+                height: overlay.height,
+                angle: overlay.angle,
+                variantIndex: getHeuristicVariantIndex(config, landmarks, {
+                  width: canvas.width,
+                  height: canvas.height,
+                }),
+              },
+            },
+          ];
+        }),
+      };
+      const refinedBounds = summarizeOverlayBounds(refinedOverlays, {
         width: canvas.width,
         height: canvas.height,
       });
 
       if (shouldRenderNailOverlay(fixture)) {
-        drawNailOverlays(context, overlays, product.style, nailAssets);
+        drawNailOverlays(context, refinedOverlays, product.style, nailAssets);
       }
 
       if (debug) {
         drawLandmarkDebug(
           context,
           landmarks,
-          overlays,
+          refinedOverlays,
           canvas.width,
           canvas.height,
         );
@@ -263,7 +361,7 @@ function FixtureMode() {
 
       setStatus("detected");
       if (shouldRenderNailOverlay(fixture)) {
-        const renderedFingers = overlays
+        const renderedFingers = refinedOverlays
           .map((overlay) => overlay.finger)
           .join(", ");
         const imageComparison =
@@ -272,20 +370,22 @@ function FixtureMode() {
             : null;
         const evaluation = evaluateFixtureRender(
           fixture,
-          overlays,
-          bounds,
+          refinedOverlays,
+          refinedBounds,
           imageComparison,
         );
         const disagreementCount = modelComparison.filter(
           (item) => item.heuristic.visible !== item.model.visible,
         ).length;
         const source = modelComparison[0]?.model.source ?? "model";
+        const placementSource =
+          placementModelComparison[0]?.source ?? "heuristic";
         const comparisonText =
           imageComparison?.compared && fixture.targetKind === "imagegen"
             ? ` Target diff: ${imageComparison.averageDifference.toFixed(1)} avg, ${(imageComparison.changedPixelRatio * 100).toFixed(1)}% changed.`
             : "";
         setMessage(
-          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}) with ${source}. Expected ${fixture.expectedVisibleFingers.length}. Heuristic/model disagreements: ${disagreementCount}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}. ${formatFixtureEvaluation(evaluation)}.${comparisonText}`,
+          `Rendered ${refinedOverlays.length} overlays (${renderedFingers || "none"}) with visibility ${source}, placement ${placementSource}. Expected ${fixture.expectedVisibleFingers.length}. Heuristic/model disagreements: ${disagreementCount}. Finite: ${refinedBounds.finite}/${refinedBounds.total}. Mostly inside: ${refinedBounds.mostlyInside}/${refinedBounds.total}. ${formatFixtureEvaluation(evaluation)}.${comparisonText}`,
         );
       } else {
         setMessage(
@@ -336,6 +436,7 @@ function FixtureMode() {
     setFixture(findFixtureById(fixtureId));
     setStatus("idle");
     setVisibilityComparison([]);
+    setPlacementComparison([]);
     setMessage("Fixture changed. Render the overlay to review this pose.");
   };
 
@@ -343,6 +444,7 @@ function FixtureMode() {
     setProduct(findPressOnProductByHandle(productHandle));
     setStatus("idle");
     setVisibilityComparison([]);
+    setPlacementComparison([]);
     setMessage("Product changed. Render the overlay to review this nail set.");
   };
 
@@ -453,6 +555,23 @@ function FixtureMode() {
                           ? "outlined"
                           : "filled"
                       }
+                    />
+                  ))}
+                </Stack>
+              </Stack>
+            ) : null}
+
+            {placementComparison.length > 0 ? (
+              <Stack spacing={1}>
+                <Typography fontWeight={700}>Placement model</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {placementComparison.map((item) => (
+                    <Chip
+                      key={item.finger}
+                      color={item.source === "onnx" ? "success" : "default"}
+                      label={`${item.finger}: ${item.source}`}
+                      size="small"
+                      variant="outlined"
                     />
                   ))}
                 </Stack>

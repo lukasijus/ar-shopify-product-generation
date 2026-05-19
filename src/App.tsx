@@ -18,9 +18,13 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createHandTracker, type HandTracker } from "./ar/handTracker";
-import { computeNailOverlaysWithVisibility } from "./ar/nailGeometry";
+import {
+  computeNailOverlaysWithVisibility,
+  fingerConfigs,
+} from "./ar/nailGeometry";
 import { drawNailOverlays } from "./ar/drawNails";
 import { loadNailAssets, type NailAssetSet } from "./ar/nailAssets";
+import { CompositeNailPlacementModel } from "./ar/nailPlacement";
 import { CompositeNailVisibilityModel } from "./ar/nailVisibility";
 import { findPressOnProductByHandle } from "./app/pressOnProducts";
 
@@ -112,6 +116,7 @@ function App() {
   const streamRef = useRef<MediaStream | null>(null);
   const trackerRef = useRef<HandTracker | null>(null);
   const visibilityModelRef = useRef<CompositeNailVisibilityModel | null>(null);
+  const placementModelRef = useRef<CompositeNailPlacementModel | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const drawFrameRef = useRef<() => void>(() => undefined);
   const drawInFlightRef = useRef(false);
@@ -123,20 +128,31 @@ function App() {
   const [product] = useState(getInitialProduct);
   const [nailAssets, setNailAssets] = useState<NailAssetSet | null>(null);
   const [visibilitySource, setVisibilitySource] = useState("loading");
+  const [placementSource, setPlacementSource] = useState("loading");
 
   useEffect(() => {
     const visibilityModel = new CompositeNailVisibilityModel();
+    const placementModel = new CompositeNailPlacementModel();
     visibilityModelRef.current = visibilityModel;
+    placementModelRef.current = placementModel;
 
     void visibilityModel.initialize().then(() => {
       if (visibilityModelRef.current === visibilityModel) {
         setVisibilitySource("ready");
       }
     });
+    void placementModel.initialize().then(() => {
+      if (placementModelRef.current === placementModel) {
+        setPlacementSource("ready");
+      }
+    });
 
     return () => {
       if (visibilityModelRef.current === visibilityModel) {
         visibilityModelRef.current = null;
+      }
+      if (placementModelRef.current === placementModel) {
+        placementModelRef.current = null;
       }
     };
   }, []);
@@ -187,12 +203,14 @@ function App() {
       const canvas = canvasRef.current;
       const tracker = trackerRef.current;
       const visibilityModel = visibilityModelRef.current;
+      const placementModel = placementModelRef.current;
 
       if (
         !video ||
         !canvas ||
         !tracker ||
         !visibilityModel ||
+        !placementModel ||
         video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
       ) {
         drawInFlightRef.current = false;
@@ -224,6 +242,7 @@ function App() {
 
       if (landmarks) {
         let frameVisibilitySource = "model";
+        let framePlacementSource = "model";
         void computeNailOverlaysWithVisibility(
           landmarks,
           {
@@ -240,12 +259,41 @@ function App() {
             return decision.visible;
           },
         )
-          .then((overlays) => {
-            drawNailOverlays(context, overlays, product.style, nailAssets);
+          .then(async (overlays) => {
+            const refinedOverlays = [];
+            for (const overlay of overlays) {
+              const config = fingerConfigs.find(
+                (candidate) => candidate.finger === overlay.finger,
+              );
+              if (!config) {
+                refinedOverlays.push(overlay);
+                continue;
+              }
+
+              const decision = await placementModel.predict(
+                config,
+                landmarks,
+                {
+                  width: canvas.width,
+                  height: canvas.height,
+                },
+                overlay,
+              );
+              framePlacementSource = decision.source;
+              refinedOverlays.push(decision.overlay);
+            }
+
+            drawNailOverlays(
+              context,
+              refinedOverlays,
+              product.style,
+              nailAssets,
+            );
             setCameraState("tracking");
             setVisibilitySource(frameVisibilitySource);
+            setPlacementSource(framePlacementSource);
             setMessage(
-              `${product.title} is placed over ${overlays.length} visible nail bed${overlays.length === 1 ? "" : "s"}.`,
+              `${product.title} is placed over ${refinedOverlays.length} visible nail bed${refinedOverlays.length === 1 ? "" : "s"}.`,
             );
           })
           .finally(() => {
@@ -381,6 +429,11 @@ function App() {
             </Stack>
             <Chip
               label={`Visibility: ${visibilitySource}`}
+              size="small"
+              variant="outlined"
+            />
+            <Chip
+              label={`Placement: ${placementSource}`}
               size="small"
               variant="outlined"
             />

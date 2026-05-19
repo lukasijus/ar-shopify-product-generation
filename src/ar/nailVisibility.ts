@@ -1,5 +1,6 @@
 import type * as Ort from "onnxruntime-web";
 
+import { configureOnnxRuntime } from "./onnxRuntime";
 import {
   distance,
   dot,
@@ -293,10 +294,7 @@ export class OnnxNailVisibilityModel implements NailVisibilityModel {
         import("onnxruntime-web"),
         this.loadMetadata(),
       ]);
-      ort.env.wasm.numThreads = 1;
-      ort.env.wasm.wasmPaths = {
-        wasm: "/vendor/onnxruntime/ort-wasm-simd-threaded.jsep.wasm",
-      };
+      configureOnnxRuntime(ort);
       this.ort = ort;
       this.metadata = metadata;
       this.session = await ort.InferenceSession.create(metadata.modelPath, {
