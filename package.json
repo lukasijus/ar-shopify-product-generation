@@ -13,6 +13,7 @@
     "format": "prettier --write \"**/*.{css,html,js,json,ts,tsx}\" && uv run --project tools/nail-extractor black .",
     "shopify:download-press-ons": "node scripts/download-shopify-press-ons.mjs",
     "assets:strip-metadata": "node scripts/strip-png-private-metadata.mjs public",
+    "assets:validate-nail-ratios": "python3 scripts/validate_nail_asset_ratios.py",
     "nails:score": "uv run --project tools/nail-extractor nail-extractor score",
     "nails:extract": "uv run --project tools/nail-extractor nail-extractor extract",
     "nails:prepare-roi-source": "uv run --project tools/nail-extractor nail-extractor prepare-roi-source",
