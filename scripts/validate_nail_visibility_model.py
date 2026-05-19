@@ -19,12 +19,20 @@ def main() -> None:
 
     metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
     feature_names = metadata.get("featureNames", [])
-    if len(feature_names) != 9:
-        raise SystemExit(f"Expected 9 features, got {len(feature_names)}")
+    if len(feature_names) < 9:
+        raise SystemExit(f"Expected at least 9 features, got {len(feature_names)}")
     if metadata.get("inputName") != "features":
         raise SystemExit("Expected inputName to be 'features'")
     if metadata.get("outputName") != "probability":
         raise SystemExit("Expected outputName to be 'probability'")
+    metrics = metadata.get("trainingMetrics", {})
+    if metadata.get("modelVersion") == "fixture-trained-v1":
+        if metrics.get("rowCount", 0) <= 0:
+            raise SystemExit("Fixture-trained model has no training rows")
+        if metrics.get("accuracy", 0) < 0.72:
+            raise SystemExit(
+                f"Fixture-trained model accuracy is too low: {metrics.get('accuracy')}"
+            )
 
     model = onnx.load(MODEL_PATH)
     onnx.checker.check_model(model)

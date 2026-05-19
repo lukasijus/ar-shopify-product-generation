@@ -32,12 +32,14 @@ import {
 } from "./ar/handTracker";
 import {
   computeNailOverlaysWithVisibility,
+  fingerConfigs,
   type Landmark,
 } from "./ar/nailGeometry";
 import { summarizeOverlayBounds } from "./ar/overlayBounds";
 import { compareFixtureRender } from "./ar/targetComparison";
 import {
   CompositeNailVisibilityModel,
+  extractNailVisibilityFeatures,
   type NailVisibilityComparison,
 } from "./ar/nailVisibility";
 import {
@@ -189,11 +191,38 @@ function FixtureMode() {
       const landmarks = result.landmarks[0] as Landmark[] | undefined;
 
       if (!landmarks) {
+        window.__alwaysLikeVisibilityTrainingSample = {
+          fixtureId: fixture.id,
+          imagePath: fixture.imagePath,
+          detected: false,
+          rows: [],
+        };
         setStatus("no-hand");
         setMessage("MediaPipe did not detect a hand in this fixture.");
         setVisibilityComparison([]);
         return;
       }
+
+      window.__alwaysLikeVisibilityTrainingSample = {
+        fixtureId: fixture.id,
+        imagePath: fixture.imagePath,
+        detected: true,
+        rows: fingerConfigs.map((config) => {
+          const features = extractNailVisibilityFeatures(config, landmarks, {
+            width: canvas.width,
+            height: canvas.height,
+          });
+
+          return {
+            finger: config.finger,
+            label: fixture.expectedVisibleFingers.includes(config.finger)
+              ? 1
+              : 0,
+            features: features.values,
+            reasons: features.reasons,
+          };
+        }),
+      };
 
       const modelComparison = await visibilityModel.compare(landmarks, {
         width: canvas.width,

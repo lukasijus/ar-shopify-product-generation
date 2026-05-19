@@ -1,19 +1,43 @@
 {
-  "modelVersion": "heuristic-distilled-v1",
-  "trainingSource": "hand-authored heuristic weights",
+  "modelVersion": "fixture-trained-v1",
+  "trainingSource": "fixture-mediapipe-browser-feature-export",
   "modelPath": "/models/nail-visibility.onnx",
   "inputName": "features",
   "outputName": "probability",
   "featureNames": [
     "bias",
+    "isThumb",
+    "isIndex",
+    "isMiddle",
+    "isRing",
+    "isPinky",
     "distalLengthNormalized",
     "supportLengthNormalized",
+    "distalSupportRatio",
     "extensionDot",
     "wristToTipRatio",
     "edgeSafetyNormalized",
+    "tipX",
+    "tipY",
+    "dipX",
+    "dipY",
     "horizontalBias",
     "directionYNormalized",
-    "zDelta"
+    "zDelta",
+    "nearEdgeFlag",
+    "shortSegmentFlag",
+    "foldedFingerFlag",
+    "tipNotExtendedFlag"
   ],
-  "threshold": 0.5
+  "threshold": 0.56,
+  "trainingMetrics": {
+    "rowCount": 115,
+    "positiveCount": 69,
+    "negativeCount": 46,
+    "accuracy": 0.9478260869565217,
+    "truePositive": 67,
+    "trueNegative": 42,
+    "falsePositive": 4,
+    "falseNegative": 2
+  }
 }

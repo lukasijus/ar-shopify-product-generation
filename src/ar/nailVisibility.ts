@@ -41,14 +41,28 @@ export type NailVisibilityModel = {
 
 export const nailVisibilityFeatureNames = [
   "bias",
+  "isThumb",
+  "isIndex",
+  "isMiddle",
+  "isRing",
+  "isPinky",
   "distalLengthNormalized",
   "supportLengthNormalized",
+  "distalSupportRatio",
   "extensionDot",
   "wristToTipRatio",
   "edgeSafetyNormalized",
+  "tipX",
+  "tipY",
+  "dipX",
+  "dipY",
   "horizontalBias",
   "directionYNormalized",
   "zDelta",
+  "nearEdgeFlag",
+  "shortSegmentFlag",
+  "foldedFingerFlag",
+  "tipNotExtendedFlag",
 ] as const;
 
 export type NailVisibilityFeatureName =
@@ -116,6 +130,7 @@ export const extractNailVisibilityFeatures = (
   );
   const directionLength = Math.max(Math.hypot(distalX, distalY), 1);
   const horizontalBias = Math.abs(distalX) / Math.max(Math.abs(distalY), 1);
+  const distalSupportRatio = distalLength / Math.max(supportLength, 1);
 
   const reasons: string[] = [];
   if (edgeSafety / minSize < 0.015) {
@@ -134,14 +149,28 @@ export const extractNailVisibilityFeatures = (
   return {
     values: [
       1,
+      config.finger === "thumb" ? 1 : 0,
+      config.finger === "index" ? 1 : 0,
+      config.finger === "middle" ? 1 : 0,
+      config.finger === "ring" ? 1 : 0,
+      config.finger === "pinky" ? 1 : 0,
       finiteOrZero(distalLength / minSize),
       finiteOrZero(supportLength / minSize),
+      finiteOrZero(distalSupportRatio),
       finiteOrZero(extensionDot),
       finiteOrZero(wristToTip / wristToDip),
       finiteOrZero(edgeSafety / minSize),
+      finiteOrZero(tip.x),
+      finiteOrZero(tip.y),
+      finiteOrZero(dip.x),
+      finiteOrZero(dip.y),
       finiteOrZero(horizontalBias),
       finiteOrZero(distalY / directionLength),
       finiteOrZero((tip.z ?? 0) - (dip.z ?? 0)),
+      reasons.includes("tip-near-edge") ? 1 : 0,
+      reasons.includes("short-finger-segment") ? 1 : 0,
+      reasons.includes("folded-finger") ? 1 : 0,
+      reasons.includes("tip-not-extended") ? 1 : 0,
     ],
     reasons,
   };
@@ -162,11 +191,11 @@ export class HeuristicNailVisibilityModel implements NailVisibilityModel {
     const visible = isFingerEligible(config, landmarks, size);
     const score =
       -1.6 +
-      features.values[1] * 36 +
-      features.values[2] * 24 +
-      features.values[3] * 2.5 +
-      (features.values[4] - 0.96) * 18 +
-      features.values[5] * 18;
+      features.values[6] * 36 +
+      features.values[7] * 24 +
+      features.values[9] * 2.5 +
+      (features.values[10] - 0.96) * 18 +
+      features.values[11] * 18;
 
     return {
       finger: config.finger,
