@@ -1,15 +1,14 @@
 {
   "productHandle": "blush-sparkle",
-  "activeAssetSet": "extracted_roi_from_source_improved",
+  "activeAssetSet": "views",
   "sourceAssetSet": "extracted_roi_from_source",
   "improvedAt": "2026-05-19",
-  "improvementPrompt": "/nail-assets/blush-sparkle/prompts/improve-cutout.prompt.md",
   "sourceProposal": "proposal.json",
   "bestSource": "source-blush-sparkle.png",
   "assets": [
     {
       "finger": "thumb",
-      "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_improved_2026-05-19.png",
+      "path": "/nail-assets/blush-sparkle/canonical/thumb.png",
       "sourcePath": "/nail-assets/blush-sparkle/extracted_roi_from_source/thumb.png",
       "bbox": [302, 563, 70, 177],
       "confidence": 1.0,
@@ -22,19 +21,41 @@
       },
       "variants": {
         "front": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_improved_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/thumb/front.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
-        "angled": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_angled_2026-05-19.png"
+        "slightLeft": {
+          "path": "/nail-assets/blush-sparkle/views/thumb/slight-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "slightRight": {
+          "path": "/nail-assets/blush-sparkle/views/thumb/slight-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledLeft": {
+          "path": "/nail-assets/blush-sparkle/views/thumb/angled-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledRight": {
+          "path": "/nail-assets/blush-sparkle/views/thumb/angled-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
         "side": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/thumb_side_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/thumb/side.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         }
-      }
+      },
+      "canonicalPath": "/nail-assets/blush-sparkle/canonical/thumb.png"
     },
     {
       "finger": "index",
-      "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_improved_2026-05-19.png",
+      "path": "/nail-assets/blush-sparkle/canonical/index.png",
       "sourcePath": "/nail-assets/blush-sparkle/extracted_roi_from_source/index.png",
       "bbox": [368, 556, 73, 180],
       "confidence": 1.0,
@@ -47,19 +68,41 @@
       },
       "variants": {
         "front": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_improved_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/index/front.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
-        "angled": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_angled_2026-05-19.png"
+        "slightLeft": {
+          "path": "/nail-assets/blush-sparkle/views/index/slight-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "slightRight": {
+          "path": "/nail-assets/blush-sparkle/views/index/slight-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledLeft": {
+          "path": "/nail-assets/blush-sparkle/views/index/angled-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledRight": {
+          "path": "/nail-assets/blush-sparkle/views/index/angled-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
         "side": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index_side_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/index/side.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         }
-      }
+      },
+      "canonicalPath": "/nail-assets/blush-sparkle/canonical/index.png"
     },
     {
       "finger": "middle",
-      "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_improved_2026-05-19.png",
+      "path": "/nail-assets/blush-sparkle/canonical/middle.png",
       "sourcePath": "/nail-assets/blush-sparkle/extracted_roi_from_source/middle.png",
       "bbox": [440, 552, 72, 181],
       "confidence": 1.0,
@@ -72,19 +115,41 @@
       },
       "variants": {
         "front": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_improved_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/middle/front.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
-        "angled": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_angled_2026-05-19.png"
+        "slightLeft": {
+          "path": "/nail-assets/blush-sparkle/views/middle/slight-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "slightRight": {
+          "path": "/nail-assets/blush-sparkle/views/middle/slight-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledLeft": {
+          "path": "/nail-assets/blush-sparkle/views/middle/angled-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledRight": {
+          "path": "/nail-assets/blush-sparkle/views/middle/angled-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
         "side": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/middle_side_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/middle/side.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         }
-      }
+      },
+      "canonicalPath": "/nail-assets/blush-sparkle/canonical/middle.png"
     },
     {
       "finger": "ring",
-      "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_improved_2026-05-19.png",
+      "path": "/nail-assets/blush-sparkle/canonical/ring.png",
       "sourcePath": "/nail-assets/blush-sparkle/extracted_roi_from_source/ring.png",
       "bbox": [512, 552, 62, 174],
       "confidence": 1.0,
@@ -97,19 +162,41 @@
       },
       "variants": {
         "front": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_improved_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/ring/front.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
-        "angled": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_angled_2026-05-19.png"
+        "slightLeft": {
+          "path": "/nail-assets/blush-sparkle/views/ring/slight-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "slightRight": {
+          "path": "/nail-assets/blush-sparkle/views/ring/slight-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledLeft": {
+          "path": "/nail-assets/blush-sparkle/views/ring/angled-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledRight": {
+          "path": "/nail-assets/blush-sparkle/views/ring/angled-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
         "side": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/ring_side_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/ring/side.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         }
-      }
+      },
+      "canonicalPath": "/nail-assets/blush-sparkle/canonical/ring.png"
     },
     {
       "finger": "pinky",
-      "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_improved_2026-05-19.png",
+      "path": "/nail-assets/blush-sparkle/canonical/pinky.png",
       "sourcePath": "/nail-assets/blush-sparkle/extracted_roi_from_source/pinky.png",
       "bbox": [187, 558, 106, 193],
       "confidence": 1.0,
@@ -122,15 +209,48 @@
       },
       "variants": {
         "front": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_improved_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/pinky/front.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
-        "angled": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_angled_2026-05-19.png"
+        "slightLeft": {
+          "path": "/nail-assets/blush-sparkle/views/pinky/slight-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "slightRight": {
+          "path": "/nail-assets/blush-sparkle/views/pinky/slight-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledLeft": {
+          "path": "/nail-assets/blush-sparkle/views/pinky/angled-left.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
+        },
+        "angledRight": {
+          "path": "/nail-assets/blush-sparkle/views/pinky/angled-right.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         },
         "side": {
-          "path": "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/pinky_side_2026-05-19.png"
+          "path": "/nail-assets/blush-sparkle/views/pinky/side.png",
+          "status": "approved",
+          "generation": "deterministic-scaffold"
         }
-      }
+      },
+      "canonicalPath": "/nail-assets/blush-sparkle/canonical/pinky.png"
     }
+  ],
+  "canonicalAssetSet": "canonical",
+  "canonicalPrompt": "/nail-assets/blush-sparkle/prompts/canonical-cutout.prompt.md",
+  "viewVariantPrompt": "/nail-assets/blush-sparkle/prompts/view-variants.prompt.md",
+  "viewNames": [
+    "front",
+    "slightLeft",
+    "slightRight",
+    "angledLeft",
+    "angledRight",
+    "side"
   ]
 }

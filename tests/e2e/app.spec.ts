@@ -7,9 +7,7 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
   page.on("request", (request) => {
     const url = request.url();
     if (
-      url.includes(
-        "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/",
-      ) &&
+      url.includes("/nail-assets/blush-sparkle/views/") &&
       url.endsWith(".png")
     ) {
       pngAssetRequests.add(url);
@@ -35,7 +33,7 @@ test("loads the nail try-on prototype on desktop", async ({ page }) => {
     .poll(() => pngAssetRequests.size, {
       message: "loads extracted Blush Sparkle nail assets",
     })
-    .toBe(15);
+    .toBe(30);
 });
 
 test("shows a camera fallback when media devices are unavailable", async ({

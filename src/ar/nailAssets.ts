@@ -21,9 +21,11 @@ export type NailAssetSet = Partial<Record<FingerName, NailAsset>>;
 
 type NailAssetMetadata = {
   activeAssetSet?: string;
+  canonicalAssetSet?: string;
   assets?: Array<{
     finger: FingerName;
     path?: string;
+    canonicalPath?: string;
     fit?: Partial<NailAssetFit>;
     tipAnchor?: [number, number];
     cuticleAnchor?: [number, number];
@@ -33,6 +35,8 @@ type NailAssetMetadata = {
         NailAssetVariantName,
         {
           path: string;
+          status?: "generated" | "approved" | "rejected";
+          generation?: string;
           tipAnchor?: [number, number];
           cuticleAnchor?: [number, number];
           rotationRadians?: number;
@@ -44,6 +48,8 @@ type NailAssetMetadata = {
 
 type NailAssetVariantMetadata = {
   path: string;
+  status?: "generated" | "approved" | "rejected";
+  generation?: string;
   tipAnchor?: [number, number];
   cuticleAnchor?: [number, number];
   rotationRadians?: number;
@@ -52,14 +58,15 @@ type NailAssetVariantMetadata = {
 const fingers: FingerName[] = ["thumb", "index", "middle", "ring", "pinky"];
 const defaultTipAnchor: [number, number] = [0.5, 0.92];
 const defaultCuticleAnchor: [number, number] = [0.5, 0.08];
-const defaultActiveAssetSet = "extracted_roi_from_source_improved";
+const defaultActiveAssetSet = "views";
+const defaultCanonicalAssetSet = "canonical";
 const defaultFit: NailAssetFit = {
   widthScale: 1.38,
   heightScale: 0.96,
 };
 
 export const getNailAssetUrl = (productHandle: string, finger: FingerName) =>
-  `/nail-assets/${productHandle}/${defaultActiveAssetSet}/${finger}.png`;
+  `/nail-assets/${productHandle}/${defaultCanonicalAssetSet}/${finger}.png`;
 
 export const getNailAssetMetadataUrl = (productHandle: string) =>
   `/nail-assets/${productHandle}/metadata.json`;
@@ -103,11 +110,16 @@ export const loadNailAssets = async (
         const fallbackAssetSet =
           metadata?.activeAssetSet ?? defaultActiveAssetSet;
         const frontPath =
+          assetMetadata?.canonicalPath ??
           assetMetadata?.path ??
-          `/nail-assets/${productHandle}/${fallbackAssetSet}/${finger}.png`;
+          `/nail-assets/${productHandle}/${fallbackAssetSet}/${finger}/front.png`;
         const variantEntries = Object.entries(
           assetMetadata?.variants ?? {},
-        ) as Array<[NailAssetVariantName, NailAssetVariantMetadata]>;
+        ).filter(([, variantMetadata]) => {
+          const metadata = variantMetadata as NailAssetVariantMetadata;
+
+          return metadata.status === "approved";
+        }) as Array<[NailAssetVariantName, NailAssetVariantMetadata]>;
         const loadedVariants = await Promise.all(
           variantEntries.map(async ([variant, variantMetadata]) => [
             variant,
@@ -124,7 +136,9 @@ export const loadNailAssets = async (
         const variants = Object.fromEntries(loadedVariants) as Partial<
           Record<NailAssetVariantName, NailAssetImage>
         >;
-        variants.front ??= await toAssetImage(frontPath, assetMetadata ?? {});
+        if (!assetMetadata?.variants) {
+          variants.front = await toAssetImage(frontPath, assetMetadata ?? {});
+        }
 
         return {
           finger,

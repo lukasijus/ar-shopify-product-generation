@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { getNailAssetMetadataUrl, getNailAssetUrl } from "./nailAssets";
 
 describe("getNailAssetUrl", () => {
-  it("builds the public extracted asset URL for a product finger", () => {
+  it("builds the public canonical asset URL for a product finger", () => {
     expect(getNailAssetUrl("blush-sparkle", "index")).toBe(
-      "/nail-assets/blush-sparkle/extracted_roi_from_source_improved/index.png",
+      "/nail-assets/blush-sparkle/canonical/index.png",
     );
   });
 

@@ -52,11 +52,11 @@ describe("computeNailOverlays", () => {
     expect(overlays.every((overlay) => overlay.width > 0)).toBe(true);
     expect(overlays.every((overlay) => overlay.height > 0)).toBe(true);
     expect(overlays.map((overlay) => overlay.variant)).toEqual([
-      "angled",
+      "angledLeft",
       "front",
       "front",
-      "front",
-      "front",
+      "slightRight",
+      "slightRight",
     ]);
   });
 
@@ -129,7 +129,10 @@ describe("computeNailOverlays", () => {
 
   it("selects front, angled, and side variants from finger direction", () => {
     expect(selectNailAssetVariant("index", 2, 10)).toBe("front");
-    expect(selectNailAssetVariant("index", 8, 10)).toBe("angled");
+    expect(selectNailAssetVariant("index", -3, 10)).toBe("slightLeft");
+    expect(selectNailAssetVariant("index", 3, 10)).toBe("slightRight");
+    expect(selectNailAssetVariant("index", -8, 10)).toBe("angledLeft");
+    expect(selectNailAssetVariant("index", 8, 10)).toBe("angledRight");
     expect(selectNailAssetVariant("thumb", 10, 4)).toBe("side");
   });
 });

@@ -5,7 +5,13 @@ export type Landmark = {
 };
 
 export type FingerName = "thumb" | "index" | "middle" | "ring" | "pinky";
-export type NailAssetVariantName = "front" | "angled" | "side";
+export type NailAssetVariantName =
+  | "front"
+  | "slightLeft"
+  | "slightRight"
+  | "angledLeft"
+  | "angledRight"
+  | "side";
 
 export type NailOverlay = {
   finger: FingerName;
@@ -144,13 +150,18 @@ export const selectNailAssetVariant = (
 ): NailAssetVariantName => {
   const horizontalBias =
     Math.abs(directionX) / Math.max(Math.abs(directionY), 1);
+  const lateralDirection = directionX < 0 ? "Left" : "Right";
 
   if (finger === "thumb" && horizontalBias > 0.92) {
     return "side";
   }
 
   if (horizontalBias > 0.58) {
-    return "angled";
+    return lateralDirection === "Left" ? "angledLeft" : "angledRight";
+  }
+
+  if (horizontalBias > 0.24) {
+    return lateralDirection === "Left" ? "slightLeft" : "slightRight";
   }
 
   return "front";
