@@ -30,9 +30,16 @@ import {
   createHandImageTracker,
   type HandImageTracker,
 } from "./ar/handTracker";
-import { computeNailOverlays, type Landmark } from "./ar/nailGeometry";
+import {
+  computeNailOverlaysWithVisibility,
+  type Landmark,
+} from "./ar/nailGeometry";
 import { summarizeOverlayBounds } from "./ar/overlayBounds";
 import { compareFixtureRender } from "./ar/targetComparison";
+import {
+  CompositeNailVisibilityModel,
+  type NailVisibilityComparison,
+} from "./ar/nailVisibility";
 import {
   findFixtureById,
   getFixtureTargetImagePath,
@@ -110,6 +117,8 @@ function FixtureMode() {
   const targetImageRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const trackerRef = useRef<HandImageTracker | null>(null);
+  const visibilityModelRef = useRef<CompositeNailVisibilityModel | null>(null);
+  const renderInFlightRef = useRef(false);
 
   const [fixture, setFixture] = useState<HandFixture>(getInitialFixture);
   const [product, setProduct] = useState<PressOnProduct>(getInitialProduct);
@@ -119,9 +128,27 @@ function FixtureMode() {
   const [message, setMessage] = useState(
     "Choose a fixture and render the current nail overlay algorithm.",
   );
+  const [visibilityComparison, setVisibilityComparison] = useState<
+    NailVisibilityComparison[]
+  >([]);
   const targetImagePath = getFixtureTargetImagePath(fixture, product.handle);
 
+  useEffect(() => {
+    const visibilityModel = new CompositeNailVisibilityModel();
+    visibilityModelRef.current = visibilityModel;
+
+    return () => {
+      if (visibilityModelRef.current === visibilityModel) {
+        visibilityModelRef.current = null;
+      }
+    };
+  }, []);
+
   const renderFixture = useCallback(async () => {
+    if (renderInFlightRef.current) {
+      return;
+    }
+
     const image = imageRef.current;
     const canvas = canvasRef.current;
 
@@ -136,9 +163,17 @@ function FixtureMode() {
 
     setStatus("loading");
     setMessage("Running the hand detector against this still fixture.");
+    renderInFlightRef.current = true;
 
     try {
       trackerRef.current ??= await createHandImageTracker();
+      const visibilityModel = visibilityModelRef.current;
+      if (!visibilityModel) {
+        setStatus("error");
+        setMessage("The nail visibility model could not be initialized.");
+        return;
+      }
+
       canvas.width = image.naturalWidth;
       canvas.height = image.naturalHeight;
 
@@ -156,14 +191,27 @@ function FixtureMode() {
       if (!landmarks) {
         setStatus("no-hand");
         setMessage("MediaPipe did not detect a hand in this fixture.");
+        setVisibilityComparison([]);
         return;
       }
 
+      const modelComparison = await visibilityModel.compare(landmarks, {
+        width: canvas.width,
+        height: canvas.height,
+      });
+      setVisibilityComparison(modelComparison);
+
       const overlays = shouldRenderNailOverlay(fixture)
-        ? computeNailOverlays(landmarks, {
-            width: canvas.width,
-            height: canvas.height,
-          })
+        ? await computeNailOverlaysWithVisibility(
+            landmarks,
+            {
+              width: canvas.width,
+              height: canvas.height,
+            },
+            async (config, currentLandmarks, size) =>
+              (await visibilityModel.predict(config, currentLandmarks, size))
+                .visible,
+          )
         : [];
       const bounds = summarizeOverlayBounds(overlays, {
         width: canvas.width,
@@ -189,7 +237,7 @@ function FixtureMode() {
         const renderedFingers = overlays
           .map((overlay) => overlay.finger)
           .join(", ");
-        const comparison =
+        const imageComparison =
           targetImagePath && targetImageRef.current
             ? compareFixtureRender(image, canvas, targetImageRef.current)
             : null;
@@ -197,14 +245,18 @@ function FixtureMode() {
           fixture,
           overlays,
           bounds,
-          comparison,
+          imageComparison,
         );
+        const disagreementCount = modelComparison.filter(
+          (item) => item.heuristic.visible !== item.model.visible,
+        ).length;
+        const source = modelComparison[0]?.model.source ?? "model";
         const comparisonText =
-          comparison?.compared && fixture.targetKind === "imagegen"
-            ? ` Target diff: ${comparison.averageDifference.toFixed(1)} avg, ${(comparison.changedPixelRatio * 100).toFixed(1)}% changed.`
+          imageComparison?.compared && fixture.targetKind === "imagegen"
+            ? ` Target diff: ${imageComparison.averageDifference.toFixed(1)} avg, ${(imageComparison.changedPixelRatio * 100).toFixed(1)}% changed.`
             : "";
         setMessage(
-          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}). Expected ${fixture.expectedVisibleFingers.length}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}. ${formatFixtureEvaluation(evaluation)}.${comparisonText}`,
+          `Rendered ${overlays.length} overlays (${renderedFingers || "none"}) with ${source}. Expected ${fixture.expectedVisibleFingers.length}. Heuristic/model disagreements: ${disagreementCount}. Finite: ${bounds.finite}/${bounds.total}. Mostly inside: ${bounds.mostlyInside}/${bounds.total}. ${formatFixtureEvaluation(evaluation)}.${comparisonText}`,
         );
       } else {
         setMessage(
@@ -218,6 +270,8 @@ function FixtureMode() {
           ? error.message
           : "The fixture detector failed to render this image.",
       );
+    } finally {
+      renderInFlightRef.current = false;
     }
   }, [debug, fixture, nailAssets, product, targetImagePath]);
 
@@ -252,12 +306,14 @@ function FixtureMode() {
   const selectFixture = (fixtureId: string): void => {
     setFixture(findFixtureById(fixtureId));
     setStatus("idle");
+    setVisibilityComparison([]);
     setMessage("Fixture changed. Render the overlay to review this pose.");
   };
 
   const selectProduct = (productHandle: string): void => {
     setProduct(findPressOnProductByHandle(productHandle));
     setStatus("idle");
+    setVisibilityComparison([]);
     setMessage("Product changed. Render the overlay to review this nail set.");
   };
 
@@ -346,6 +402,33 @@ function FixtureMode() {
             </Stack>
 
             <Typography color="text.secondary">{fixture.notes}</Typography>
+
+            {visibilityComparison.length > 0 ? (
+              <Stack spacing={1}>
+                <Typography fontWeight={700}>Visibility model</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {visibilityComparison.map((item) => (
+                    <Chip
+                      key={item.finger}
+                      color={
+                        item.model.visible
+                          ? item.heuristic.visible === item.model.visible
+                            ? "success"
+                            : "warning"
+                          : "default"
+                      }
+                      label={`${item.finger}: ${item.model.visible ? "show" : "hide"} ${Math.round(item.model.confidence * 100)}%`}
+                      size="small"
+                      variant={
+                        item.heuristic.visible === item.model.visible
+                          ? "outlined"
+                          : "filled"
+                      }
+                    />
+                  ))}
+                </Stack>
+              </Stack>
+            ) : null}
 
             <Box className="fixture-product-card">
               <Box

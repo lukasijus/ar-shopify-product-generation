@@ -1,0 +1,19 @@
+{
+  "modelVersion": "heuristic-distilled-v1",
+  "trainingSource": "hand-authored heuristic weights",
+  "modelPath": "/models/nail-visibility.onnx",
+  "inputName": "features",
+  "outputName": "probability",
+  "featureNames": [
+    "bias",
+    "distalLengthNormalized",
+    "supportLengthNormalized",
+    "extensionDot",
+    "wristToTipRatio",
+    "edgeSafetyNormalized",
+    "horizontalBias",
+    "directionYNormalized",
+    "zDelta"
+  ],
+  "threshold": 0.5
+}

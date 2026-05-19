@@ -25,7 +25,7 @@ export type NailOverlay = {
   accentColor: string;
 };
 
-type FingerConfig = {
+export type FingerConfig = {
   finger: FingerName;
   tip: number;
   dip: number;
@@ -99,12 +99,14 @@ const FINGERS: FingerConfig[] = [
   },
 ];
 
+export const fingerConfigs: readonly FingerConfig[] = FINGERS;
+
 export type OverlayCanvasSize = {
   width: number;
   height: number;
 };
 
-const distance = (
+export const distance = (
   a: Landmark,
   b: Landmark,
   size: OverlayCanvasSize,
@@ -115,7 +117,7 @@ const distance = (
   return Math.hypot(dx, dy);
 };
 
-const toCanvasPoint = (
+export const toCanvasPoint = (
   landmark: Landmark,
   size: OverlayCanvasSize,
 ): { x: number; y: number } => ({
@@ -123,10 +125,10 @@ const toCanvasPoint = (
   y: landmark.y * size.height,
 });
 
-const clamp = (value: number, min: number, max: number): number =>
+export const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
-const isFiniteLandmark = (
+export const isFiniteLandmark = (
   landmark: Landmark | undefined,
 ): landmark is Landmark =>
   Boolean(
@@ -136,7 +138,7 @@ const isFiniteLandmark = (
     (landmark.z === undefined || Number.isFinite(landmark.z)),
   );
 
-const dot = (aX: number, aY: number, bX: number, bY: number): number => {
+export const dot = (aX: number, aY: number, bX: number, bY: number): number => {
   const aLength = Math.max(Math.hypot(aX, aY), 1);
   const bLength = Math.max(Math.hypot(bX, bY), 1);
 
@@ -167,7 +169,7 @@ export const selectNailAssetVariant = (
   return "front";
 };
 
-const isFingerEligible = (
+export const isFingerEligible = (
   config: FingerConfig,
   landmarks: Landmark[],
   size: OverlayCanvasSize,
@@ -231,6 +233,52 @@ const isFingerEligible = (
   return true;
 };
 
+export type NailVisibilityGate = (
+  config: FingerConfig,
+  landmarks: Landmark[],
+  size: OverlayCanvasSize,
+) => boolean | Promise<boolean>;
+
+const createNailOverlay = (
+  config: FingerConfig,
+  landmarks: Landmark[],
+  size: OverlayCanvasSize,
+): NailOverlay => {
+  const tip = landmarks[config.tip];
+  const dip = landmarks[config.dip];
+  const pip = landmarks[config.pip];
+  const tipPoint = toCanvasPoint(tip, size);
+  const dipPoint = toCanvasPoint(dip, size);
+
+  const directionX = tipPoint.x - dipPoint.x;
+  const directionY = tipPoint.y - dipPoint.y;
+  const distalLength = Math.max(distance(tip, dip, size), 10);
+  const supportLength = Math.max(distance(dip, pip, size), distalLength);
+  const segmentLength = clamp(
+    distalLength * 0.72 + supportLength * 0.28,
+    14,
+    110,
+  );
+  const directionLength = Math.max(Math.hypot(directionX, directionY), 1);
+  const unitX = directionX / directionLength;
+  const unitY = directionY / directionLength;
+  const angle = Math.atan2(directionY, directionX) + Math.PI / 2;
+  const width = clamp(segmentLength * config.widthRatio, 9, 48);
+  const height = clamp(segmentLength * config.lengthRatio, 16, 78);
+
+  return {
+    finger: config.finger,
+    variant: selectNailAssetVariant(config.finger, directionX, directionY),
+    centerX: tipPoint.x - unitX * height * config.bedOffsetRatio,
+    centerY: tipPoint.y - unitY * height * config.bedOffsetRatio,
+    width,
+    height,
+    angle,
+    color: config.color,
+    accentColor: config.accentColor,
+  };
+};
+
 export const computeNailOverlays = (
   landmarks: Landmark[],
   size: OverlayCanvasSize,
@@ -244,7 +292,7 @@ export const computeNailOverlays = (
     ? new Set<FingerName>(options.allowedFingers)
     : null;
 
-  return FINGERS.flatMap((config) => {
+  return fingerConfigs.flatMap((config) => {
     if (allowedFingers && !allowedFingers.has(config.finger)) {
       return [];
     }
@@ -253,40 +301,34 @@ export const computeNailOverlays = (
       return [];
     }
 
-    const tip = landmarks[config.tip];
-    const dip = landmarks[config.dip];
-    const pip = landmarks[config.pip];
-    const tipPoint = toCanvasPoint(tip, size);
-    const dipPoint = toCanvasPoint(dip, size);
-
-    const directionX = tipPoint.x - dipPoint.x;
-    const directionY = tipPoint.y - dipPoint.y;
-    const distalLength = Math.max(distance(tip, dip, size), 10);
-    const supportLength = Math.max(distance(dip, pip, size), distalLength);
-    const segmentLength = clamp(
-      distalLength * 0.72 + supportLength * 0.28,
-      14,
-      110,
-    );
-    const directionLength = Math.max(Math.hypot(directionX, directionY), 1);
-    const unitX = directionX / directionLength;
-    const unitY = directionY / directionLength;
-    const angle = Math.atan2(directionY, directionX) + Math.PI / 2;
-    const width = clamp(segmentLength * config.widthRatio, 9, 48);
-    const height = clamp(segmentLength * config.lengthRatio, 16, 78);
-
-    return [
-      {
-        finger: config.finger,
-        variant: selectNailAssetVariant(config.finger, directionX, directionY),
-        centerX: tipPoint.x - unitX * height * config.bedOffsetRatio,
-        centerY: tipPoint.y - unitY * height * config.bedOffsetRatio,
-        width,
-        height,
-        angle,
-        color: config.color,
-        accentColor: config.accentColor,
-      },
-    ];
+    return [createNailOverlay(config, landmarks, size)];
   });
+};
+
+export const computeNailOverlaysWithVisibility = async (
+  landmarks: Landmark[],
+  size: OverlayCanvasSize,
+  visibilityGate: NailVisibilityGate,
+  options: NailOverlayOptions = {},
+): Promise<NailOverlay[]> => {
+  if (landmarks.length < 21 || size.width <= 0 || size.height <= 0) {
+    return [];
+  }
+
+  const allowedFingers = options.allowedFingers
+    ? new Set<FingerName>(options.allowedFingers)
+    : null;
+  const overlays: NailOverlay[] = [];
+
+  for (const config of fingerConfigs) {
+    if (allowedFingers && !allowedFingers.has(config.finger)) {
+      continue;
+    }
+
+    if (await visibilityGate(config, landmarks, size)) {
+      overlays.push(createNailOverlay(config, landmarks, size));
+    }
+  }
+
+  return overlays;
 };

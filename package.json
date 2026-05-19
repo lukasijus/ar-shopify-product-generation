@@ -14,6 +14,8 @@
     "shopify:download-press-ons": "node scripts/download-shopify-press-ons.mjs",
     "assets:strip-metadata": "node scripts/strip-png-private-metadata.mjs public",
     "assets:validate-nail-ratios": "python3 scripts/validate_nail_asset_ratios.py",
+    "model:train-nail-visibility": "uv run --with onnx --with numpy python3 scripts/train_nail_visibility_model.py",
+    "model:validate-nail-visibility": "uv run --with onnx python3 scripts/validate_nail_visibility_model.py",
     "nails:score": "uv run --project tools/nail-extractor nail-extractor score",
     "nails:extract": "uv run --project tools/nail-extractor nail-extractor extract",
     "nails:prepare-roi-source": "uv run --project tools/nail-extractor nail-extractor prepare-roi-source",
@@ -28,6 +30,7 @@
     "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
+    "onnxruntime-web": "^1.26.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1"
   },
